@@ -1,0 +1,14 @@
+D:\Files_D\c#\NoU\nou_server\bin\Debug\net8.0\nou_server.exe
+D:\Files_D\c#\NoU\nou_server\bin\Debug\net8.0\nou_server.deps.json
+D:\Files_D\c#\NoU\nou_server\bin\Debug\net8.0\nou_server.runtimeconfig.json
+D:\Files_D\c#\NoU\nou_server\bin\Debug\net8.0\nou_server.dll
+D:\Files_D\c#\NoU\nou_server\bin\Debug\net8.0\nou_server.pdb
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.GeneratedMSBuildEditorConfig.editorconfig
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.AssemblyInfoInputs.cache
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.AssemblyInfo.cs
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.csproj.CoreCompileInputs.cache
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.dll
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\refint\nou_server.dll
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.pdb
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.genruntimeconfig.cache
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\ref\nou_server.dll

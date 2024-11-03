@@ -1,0 +1,14 @@
+D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\nou_client.exe
+D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\nou_client.deps.json
+D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\nou_client.runtimeconfig.json
+D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\nou_client.dll
+D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\nou_client.pdb
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.GeneratedMSBuildEditorConfig.editorconfig
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.AssemblyInfoInputs.cache
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.AssemblyInfo.cs
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.csproj.CoreCompileInputs.cache
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.dll
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\refint\nou_client.dll
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.pdb
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.genruntimeconfig.cache
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\ref\nou_client.dll
