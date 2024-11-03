@@ -8,21 +8,26 @@ public class GameEngine
     private bool isRunning = true;
     private int frameRate = 100;
     
+
+    // ======================================================
+
     public GameEngine()
     {
         Console.CancelKeyPress += (sender, args) => Exit();
     }
 
-    public void Run()
+    public void Run() { while (isRunning) Update(); }
+    private void Update()
     {
-        while (isRunning)
-        {
-            if(Console.KeyAvailable) Input();
+        // DrawFrame
 
+        if(Console.KeyAvailable) Input();
 
-            Thread.Sleep(frameRate);
-        }
+        Thread.Sleep(frameRate);
+        Console.Clear();
     }
+    
+    // ======================================================
 
     private void Input()
     {

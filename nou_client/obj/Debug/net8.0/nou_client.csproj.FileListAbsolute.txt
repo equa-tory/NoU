@@ -12,3 +12,4 @@ D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\refint\nou_client.dll
 D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.pdb
 D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.genruntimeconfig.cache
 D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\ref\nou_client.dll
+D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.sourcelink.json
