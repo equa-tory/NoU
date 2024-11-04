@@ -40,19 +40,30 @@ public class GameEngine
                 Exit();
                 return;
 
-            case ConsoleKey.DownArrow:
+            case ConsoleKey.UpArrow:
+                Console.WriteLine("\t"+Underline("Luzevg"));
+                Console.WriteLine("Qdness"+"\t\t"+"Equa");
+                Console.WriteLine("\t"+"Axlamon");
                 break;
 
-            case ConsoleKey.Spacebar:
+            case ConsoleKey.RightArrow:
+                Console.WriteLine("\tLuzevg");
+                Console.WriteLine("Qdness\t\t"+Underline("Equa"));
+                Console.WriteLine("\tAxlamon");
                 break;
                 
             default:
                 break;
         }
     }
+
+    private string Underline(string text) { return "\x1B[4m"+text+"\x1B[0m"; }
+
+    // ======================================================
     
     private void Exit()
     {
+        // Disconnect from server
 
         //Log("Exit!");
 

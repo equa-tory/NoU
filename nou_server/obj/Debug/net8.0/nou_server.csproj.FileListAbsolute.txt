@@ -12,3 +12,11 @@ D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\refint\nou_server.dll
 D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.pdb
 D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.genruntimeconfig.cache
 D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\ref\nou_server.dll
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.GeneratedMSBuildEditorConfig.editorconfig
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.AssemblyInfoInputs.cache
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.AssemblyInfo.cs
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.csproj.CoreCompileInputs.cache
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.sourcelink.json
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.dll
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\refint\nou_server.dll
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.pdb
