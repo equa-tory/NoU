@@ -7,13 +7,18 @@ public class GameEngine
     private static readonly CancellationTokenSource cts = new CancellationTokenSource();
     private bool isRunning = true;
     private int frameRate = 100;
-    
 
+    private Client client;
+    
     // ======================================================
 
-    public GameEngine()
+
+    // Start()
+    public GameEngine(string nickname)
     {
         Console.CancelKeyPress += (sender, args) => Exit();
+
+        client = new Client("127.0.0.1", 3108, nickname);
     }
 
     public void Run() { while (isRunning) Update(); }
@@ -24,7 +29,7 @@ public class GameEngine
         if(Console.KeyAvailable) Input();
 
         Thread.Sleep(frameRate);
-        Console.Clear();
+        // Console.Clear();
     }
     
     // ======================================================
@@ -39,6 +44,10 @@ public class GameEngine
                 isRunning = false;
                 Exit();
                 return;
+
+            case ConsoleKey.S:
+                client.TCP("msg::Hello!");
+                break;
 
             case ConsoleKey.UpArrow:
                 Console.WriteLine("\t"+Underline("Luzevg"));
@@ -64,6 +73,7 @@ public class GameEngine
     private void Exit()
     {
         // Disconnect from server
+        client.Disconnect();
 
         //Log("Exit!");
 

@@ -6,13 +6,34 @@ using System.Threading;
 
 namespace NoUS;
 
-// public class PlayerData
-// {
-//     public int id { get; set; }
-//     public float x { get; set; }
-//     public float y { get; set; }
-//     public float z { get; set; }
-// }
+public class Player
+{
+    private int id { get; set; }
+    private string name { get; set; }
+    private int cardsLeft { get; set; }
+
+    public Player(string name, int cardsLeft = 7)
+    {
+        this.name = name;
+        this.cardsLeft = cardsLeft;
+    }
+}
+public class Card
+{
+    public enum CardColor { red, green, blue, yellow, none }
+    public enum CardType { number, skip, reverse, drawTwo, wild, wildDrawFour }
+    
+    public CardColor color { get; set; }
+    public CardType type { get; set; }
+    public int? num { get; set; }
+
+    public Card(CardColor color, CardType type, int? num = null)
+    {
+        this.color = color;
+        this.type = type;
+        this.num = num;
+    }
+}
 
 public class Server
 {
@@ -39,7 +60,6 @@ public class Server
     }
     public void Stop(){
         isRunning = false;
-        udpServer.Close();
         tcpServer.Stop();
         Console.WriteLine("[LOG] Server stopped...");
     }
@@ -67,8 +87,8 @@ public class Server
             if (bytesCount == 0) break; // Client disconnected
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
-            
-            //                                                                                 TODO-speed+security
+
+            // ====================== TCP MESSAGE COMMANDS ======================            
             // tcp message commands
             string[] parts = data.Split("::"); 
             // string json = "";
@@ -93,10 +113,19 @@ public class Server
                     //     }
                     // }
                     break;
+
+                case "msg":
+                    TcpBroadcast(parts[1]);
+                    break;
             }
             Console.WriteLine("[MSG] " + data);
         }
+
+        // Disonnect if client disconnected
         DisconnectTCPClient(client);
+
+        //== Send every updated list if someone disconnected
+        // 
         // lock(client) { // lock to prevent race condition (disconnect)
         //     TcpBroadcast(Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()));
         //     tcpClients.Remove(client);
@@ -105,7 +134,9 @@ public class Server
         // Console.WriteLine("[LOG] Client disconnected!");
     }
     
-    private void TcpBroadcast(string data){ //                                                         SEND TCP
+    // Send data to all connected clients
+    private void TcpBroadcast(string data)
+    {
         byte[] buffer = Encoding.UTF8.GetBytes(data);
         lock(tcpClients)
         {
@@ -115,9 +146,7 @@ public class Server
                     NetworkStream stream = client.GetStream();
                     stream.Write(buffer, 0, buffer.Length);
                 }
-                catch{
-
-                }
+                catch{}
             }
         }
     }

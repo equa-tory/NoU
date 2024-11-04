@@ -18,11 +18,11 @@ public class Program
         Console.Clear();
         Console.WriteLine("Enter nickname: ");
         do{ nickname = Console.ReadLine();
-        } while(nickname.Length < 2 || nickname.Length > 8);
+        } while(nickname.Length < 2 || nickname.Length > 8 || nickname.Contains(":"));
 
 
         // Game start
-        GameEngine game = new GameEngine();
+        GameEngine game = new GameEngine(nickname);
         game.Run();
     }
 }

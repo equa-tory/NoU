@@ -20,3 +20,4 @@ F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.sourcelink.json
 F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.dll
 F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\refint\nou_server.dll
 F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.pdb
+D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.sourcelink.json

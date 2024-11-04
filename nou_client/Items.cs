@@ -2,67 +2,39 @@ using System;
 
 namespace NoUC;
 
-public enum CardColor
-{
-    red,
-    green,
-    blue,
-    yellow,
-    black
-}
-
 public class Card
 {
-    protected string name { get; set; }
-    protected string description;
-    protected CardColor color { get; set; }
+    public enum CardColor { red, green, blue, yellow, none }
+    public enum CardType { number, skip, reverse, drawTwo, wild, wildDrawFour }
+    
+    public CardColor color { get; set; }
+    public CardType type { get; set; }
+    public int? num { get; set; }
 
-    public Card(CardColor color)
+    public Card(CardColor color, CardType type, int? num = null)
     {
         this.color = color;
+        this.type = type;
+        this.num = num;
     }
 
-    public virtual void Use()
+    public void Use()
     {
-        Console.WriteLine("Using card: " + name + " Color: " + color);
-    }
-}
-public class NumCard : Card
-{
-    private int number { get; set; }
-
-    public NumCard(int number, CardColor color) : base(color)
-    {
-        this.number = number;
-    }
-
-    public override void Use()
-    {
-        Console.WriteLine("Using number card: " + number + " Color: " + color);
-    }
-}
-public class ActionCard : Card
-{
-    public ActionCard(string name, CardColor color) : base(color)
-    {
-        this.name = name;
-    }
-
-    public override void Use()
-    {
-        Console.WriteLine("Using action card: " + name + " Color: " + color);
+        Console.WriteLine("Using card: " + type.ToString() + " Color: " + color);
     }
 }
 
 public class Player
 {
-    private string name { get; set; }
-    private List<Card> cards { get; set; }
+    public int id { get; set; }
+    public string name { get; set; }
+    public int cardsLeft { get; set; }
 
-    public Player(string name, List<Card> cards)
+    public Player(string name, int cardsLeft = 7)
     {
         this.name = name;
-        cards = new List<Card>();
-        this.cards = cards;
+        this.cardsLeft = cardsLeft;
+        Random r = new Random();
+        this.id = r.Next(0, 10000);
     }
 }
