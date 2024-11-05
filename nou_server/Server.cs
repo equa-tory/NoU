@@ -43,10 +43,78 @@ public class Server
     private TcpListener tcpServer;
     private List<TcpClient> tcpClients = new List<TcpClient>();
 
+    // Game
+    private List<Card> drawDeck = new List<Card>();
 
-    public Server(string ip, int port){
 
+    public Server(string ip, int port)
+    {
         tcpServer = new TcpListener(IPAddress.Parse(ip), port);
+
+        //      =============   TODO with foreach
+
+        // add number cards
+        for(int color=0;color<Card.CardColor.Count;color++)
+        {
+            for(int i=0;i<10;i++)
+            {
+                drawDeck.Add(Card.CardColor[color], Card.CardType.number, i);
+                drawDeck.Add(Card.CardColor[color], Card.CardType.number, i);
+            }
+            drawDeck.Add(Card.CardColor[i], Card.CardType.number,0);
+        }
+        // add action cards
+        for(int type=0;type<Card.CardType.Count;type++)
+        {
+            
+        }
+        // add wild cards
+        for(int i=0;i<4;i++)
+        {
+            drawDeck.Add(Card.CardColor.none, Card.CardType.wild);
+            drawDeck.Add(Card.CardColor.none, Card.CardType.wildDrawFour);
+        }
+
+        int a=0;
+        for(int i=0;i<drawDeck.Count;i++)
+        {
+            if(drawDeck[i].type == Card.CardType.number && drawDeck[i].color == Card.CardColor.green) a++;
+        }
+        Console.WriteLine("Red cards: ",a);
+
+        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.red, CardType.number, i));
+        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.green, CardType.number, i));
+        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.blue, CardType.number, i));
+        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.yellow, CardType.number, i));
+        // drawDeck.Add(new Card(CardColor.red,CardType.number, 0));
+        // drawDeck.Add(new Card(CardColor.green,CardType.number, 0));
+        // drawDeck.Add(new Card(CardColor.blue,CardType.number, 0));
+        // drawDeck.Add(new Card(CardColor.yellow,CardType.number, 0));
+        // drawDeck.Add(new Card(CardColor.red,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.red,Card.CardType.skip));
+        // drawDeck.Add(new Card(CardColor.green,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.green,Card.CardType.skip));
+        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.skip));
+        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.skip));
+
+        // drawDeck.Add(new Card(CardColor.red,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.red,Card.CardType.reverse));
+        // drawDeck.Add(new Card(CardColor.green,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.green,Card.CardType.reverse));
+        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.reverse));
+        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.reverse));
+
+        // drawDeck.Add(new Card(CardColor.red,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.red,Card.CardType.drawTwo));
+        // drawDeck.Add(new Card(CardColor.green,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.green,Card.CardType.drawTwo));
+        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.drawTwo));
+        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.drawTwo));
+
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
+
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
+        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
+
     }
 
     public void Start()
