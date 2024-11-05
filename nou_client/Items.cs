@@ -30,7 +30,7 @@ public class Player
     public string name { get; set; }
     public int cardsLeft { get; set; }
 
-    public Player(string name, int cardsLeft = 7)
+    public Player(string name, int id = 0, int cardsLeft = 7)
     {
         this.name = name;
         this.cardsLeft = cardsLeft;

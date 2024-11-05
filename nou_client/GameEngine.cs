@@ -9,31 +9,39 @@ public class GameEngine
     private int frameRate = 100;
 
     private Client client;
+    public List<Player> players = new List<Player>();
+
+    private bool gameStarted = false;
+    
     
     // ======================================================
 
 
     // Start()
-    public GameEngine(string nickname)
+    public GameEngine(string nickname, string ip, int port)
     {
         Console.CancelKeyPress += (sender, args) => Exit();
 
-        client = new Client("127.0.0.1", 3108, nickname);
+        Player localPlayer = new Player(nickname);
+        client = new Client(ip, port, localPlayer, players);
+        players.Add(localPlayer);
     }
 
     public void Run() { while (isRunning) Update(); }
     private void Update()
     {
         // DrawFrame
+        if(!gameStarted) DrawLobby();
 
         if(Console.KeyAvailable) Input();
 
         Thread.Sleep(frameRate);
-        // Console.Clear();
+        Console.Clear();
     }
     
     // ======================================================
 
+    #region Game
     private void Input()
     {
         ConsoleKeyInfo key = Console.ReadKey(true);
@@ -46,7 +54,7 @@ public class GameEngine
                 return;
 
             case ConsoleKey.S:
-                client.TCP("msg::Hello!");
+                client.TCP("start");
                 break;
 
             case ConsoleKey.UpArrow:
@@ -65,11 +73,28 @@ public class GameEngine
                 break;
         }
     }
+    #endregion
+   
+    // ======================================================
 
-    private string Underline(string text) { return "\x1B[4m"+text+"\x1B[0m"; }
+    #region Frames
+    private void DrawLobby()
+    {
+        if(players.Count >= 2) Console.WriteLine("Press S to start the game!");
+        Console.WriteLine("=== Lobby: ===");
+
+        int i = 0;
+        foreach (Player player in players) {
+            if(i == 0) Console.WriteLine(Underline(player.name));
+            else Console.WriteLine(player.name);
+            i++;
+        }
+    }
+    #endregion
 
     // ======================================================
-    
+
+    #region Utils
     private void Exit()
     {
         // Disconnect from server
@@ -81,8 +106,12 @@ public class GameEngine
         cts.Cancel();
         Console.Clear();
     }
+
+    private string Underline(string text) { return "\x1B[4m"+text+"\x1B[0m"; }
+
     private void Log(string msg)
     {
         File.AppendAllText("log.txt", System.Environment.NewLine + System.DateTime.Now + " # " + msg);
     }
+    #endregion
 }

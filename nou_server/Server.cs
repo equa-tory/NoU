@@ -3,17 +3,19 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace NoUS;
 
 public class Player
 {
-    private int id { get; set; }
-    private string name { get; set; }
-    private int cardsLeft { get; set; }
+    public int id { get; set; }
+    public string name { get; set; }
+    public int cardsLeft { get; set; }
 
-    public Player(string name, int cardsLeft = 7)
+    public Player(int id,string name, int cardsLeft = 7)
     {
+        this.id = id;
         this.name = name;
         this.cardsLeft = cardsLeft;
     }
@@ -44,77 +46,14 @@ public class Server
     private List<TcpClient> tcpClients = new List<TcpClient>();
 
     // Game
+    private List<Player> players = new List<Player>();
     private List<Card> drawDeck = new List<Card>();
+    private Card topCard;
 
+    //--------------------------------------------------------------------------------------------
 
-    public Server(string ip, int port)
-    {
+    public Server(string ip, int port) {
         tcpServer = new TcpListener(IPAddress.Parse(ip), port);
-
-        //      =============   TODO with foreach
-
-        // add number cards
-        for(int color=0;color<Card.CardColor.Count;color++)
-        {
-            for(int i=0;i<10;i++)
-            {
-                drawDeck.Add(Card.CardColor[color], Card.CardType.number, i);
-                drawDeck.Add(Card.CardColor[color], Card.CardType.number, i);
-            }
-            drawDeck.Add(Card.CardColor[i], Card.CardType.number,0);
-        }
-        // add action cards
-        for(int type=0;type<Card.CardType.Count;type++)
-        {
-            
-        }
-        // add wild cards
-        for(int i=0;i<4;i++)
-        {
-            drawDeck.Add(Card.CardColor.none, Card.CardType.wild);
-            drawDeck.Add(Card.CardColor.none, Card.CardType.wildDrawFour);
-        }
-
-        int a=0;
-        for(int i=0;i<drawDeck.Count;i++)
-        {
-            if(drawDeck[i].type == Card.CardType.number && drawDeck[i].color == Card.CardColor.green) a++;
-        }
-        Console.WriteLine("Red cards: ",a);
-
-        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.red, CardType.number, i));
-        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.green, CardType.number, i));
-        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.blue, CardType.number, i));
-        // for (int i = 0;i<10;i++) drawDeck.Add(new Card(CardColor.yellow, CardType.number, i));
-        // drawDeck.Add(new Card(CardColor.red,CardType.number, 0));
-        // drawDeck.Add(new Card(CardColor.green,CardType.number, 0));
-        // drawDeck.Add(new Card(CardColor.blue,CardType.number, 0));
-        // drawDeck.Add(new Card(CardColor.yellow,CardType.number, 0));
-        // drawDeck.Add(new Card(CardColor.red,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.red,Card.CardType.skip));
-        // drawDeck.Add(new Card(CardColor.green,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.green,Card.CardType.skip));
-        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.skip));
-        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.skip)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.skip));
-
-        // drawDeck.Add(new Card(CardColor.red,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.red,Card.CardType.reverse));
-        // drawDeck.Add(new Card(CardColor.green,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.green,Card.CardType.reverse));
-        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.reverse));
-        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.reverse)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.reverse));
-
-        // drawDeck.Add(new Card(CardColor.red,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.red,Card.CardType.drawTwo));
-        // drawDeck.Add(new Card(CardColor.green,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.green,Card.CardType.drawTwo));
-        // drawDeck.Add(new Card(CardColor.blue,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.blue,Card.CardType.drawTwo));
-        // drawDeck.Add(new Card(CardColor.yellow,Card.CardType.drawTwo)); drawDeck.Add(new Card(CardColor.yellow,Card.CardType.drawTwo));
-
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wildDrawFour));
-
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
-        // drawDeck.Add(new Card(CardColor.none,Card.CardType.wild));
-
     }
 
     public void Start()
@@ -159,31 +98,36 @@ public class Server
             // ====================== TCP MESSAGE COMMANDS ======================            
             // tcp message commands
             string[] parts = data.Split("::"); 
-            // string json = "";
+            string json = "";
             switch(parts[0]){
-                
                 case "connect":
-                    // PlayerData newPlayer = new PlayerData(){ id = int.Parse(parts[1]) };
-                    // players.Add(newPlayer);
-                    // Console.WriteLine($"[TCP] client connected: {newPlayer.id} from {client.Client.RemoteEndPoint}");
+                    Player newPlayer = new Player(int.Parse(parts[1]), parts[2]);
+                    players.Add(newPlayer);
+                    Console.WriteLine($"[TCP] client connected: {newPlayer.name} from {client.Client.RemoteEndPoint}");
                     
-                    // // send all players updated list
-                    // json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
-                    // TcpBroadcast(json);
+                    // send all players updated list
+                    json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
+                    TcpBroadcast(json);
                     break;
 
                 case "disconnect":
-                    // foreach(PlayerData p in players){ //                                                            TODO-speed
-                    //     if(p.id == int.Parse(parts[1])){
-                    //         Console.WriteLine($"[TCP] client disconnected: {p.id} from {client.Client.RemoteEndPoint}");
-                    //         players.Remove(p);
-                    //         break;
-                    //     }
-                    // }
+                    foreach(Player p in players){
+                        if(p.id == int.Parse(parts[1])){
+                            Console.WriteLine($"[TCP] client disconnected: {p.name} from {client.Client.RemoteEndPoint}");
+                            players.Remove(p);
+                            break;
+                        }
+                    }
                     break;
 
-                case "msg":
-                    TcpBroadcast(parts[1]);
+                // case "msg":
+                //     TcpBroadcast(parts[1]);
+                //     break;
+
+                case "start": // > 2 and < 10 players
+                    Console.WriteLine($"[TCP] Game started!");
+
+                    GenerateDrawDeck();
                     break;
             }
             Console.WriteLine("[MSG] " + data);
@@ -220,7 +164,7 @@ public class Server
     }
     #endregion
 
-    #region Stuff
+    #region Disconnect
     private void DisconnectTCPClient(TcpClient client)
     {
         try{
@@ -230,7 +174,7 @@ public class Server
                 tcpClients.Remove(client);
                 // client.GetStream().Close();
                 client.Close();
-                Console.WriteLine("[LOG] Client disconnected!");
+                // Console.WriteLine("[LOG] Client disconnected!");
 
                 // TcpBroadcast(Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()));
             }
@@ -238,6 +182,41 @@ public class Server
         catch(Exception e){
             Console.WriteLine("[ERR] TCP Disconnect: " + e);
         }
+    }
+    #endregion
+
+    #region Game
+    private void GenerateDrawDeck()
+    {
+        // add number cards
+        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor)))
+        {
+            for(int i=1;i<10;i++)
+            {
+                if(color == Card.CardColor.none) continue;
+                drawDeck.Add(new Card(color, Card.CardType.number, i));
+                drawDeck.Add(new Card(color, Card.CardType.number, i));
+            }
+            drawDeck.Add(new Card(color, Card.CardType.number, 0));
+        }
+        // add action cards
+        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor))){
+            foreach(Card.CardType type in Enum.GetValues(typeof(Card.CardType)))
+            {
+                if(type == Card.CardType.wild || type == Card.CardType.wildDrawFour || color == Card.CardColor.none || type == Card.CardType.number) continue;
+                drawDeck.Add(new Card(color, type));
+                drawDeck.Add(new Card(color, type));
+            }
+        }
+        // add wild cards
+        for(int i=0;i<4;i++)
+        {
+            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wild));
+            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wildDrawFour));
+        }
+
+        // Debug cards
+        // for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
     }
     #endregion
 

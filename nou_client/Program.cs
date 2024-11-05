@@ -19,10 +19,10 @@ public class Program
         Console.WriteLine("Enter nickname: ");
         do{ nickname = Console.ReadLine();
         } while(nickname.Length < 2 || nickname.Length > 8 || nickname.Contains(":"));
-
+        Console.Clear();
 
         // Game start
-        GameEngine game = new GameEngine(nickname);
+        GameEngine game = new GameEngine(nickname, ip, port);
         game.Run();
     }
 }

@@ -14,12 +14,14 @@ public class Client
     
     private TcpClient client;
     private NetworkStream stream;
+    private List<Player> players;
     
 
-    public Client(string ip, int port, string nickname){
+    public Client(string ip, int port, Player localPlayer, List<Player> players){
         this.ip = ip;
         this.port = port;
-        this.localPlayer = new Player(nickname);
+        this.localPlayer = localPlayer;
+        this.players = players;
         ConnectToServer();
     }
 
@@ -59,16 +61,20 @@ public class Client
             string data = Encoding.UTF8.GetString(buffer, 0, byteCount);
             //--------------------------------------------------------------------------------------------
 
-            Console.WriteLine("[SERVER] TCP: " + data);
+            // Console.WriteLine("[SERVER] " + data);
 
-            // better way                                                                                         TODO
+            // TODO - better way to do this
             // ====================== TCP MESSAGE COMMANDS ======================
-            string[] parts = data.Split("::"); 
+            string[] parts = data.Split("::");
 
             switch(parts[0]){
-                case "msg":
-                    // TODO
-                    Console.WriteLine("[SERVER] msg: " + parts[1]);
+                // case "msg":
+                //     // TODO
+                //     Console.WriteLine("[SERVER] msg: " + parts[1]);
+                //     break;
+
+                case "newplayer":
+                    if(int.Parse(parts[2]) != localPlayer.id) players.Add(new Player(name: parts[1], id: int.Parse(parts[2])));
                     break;
             }
         }
@@ -91,4 +97,5 @@ public class Client
             Console.WriteLine($"[ERR] TCP Disconnect: {e}");
         }
     }
+
 }

@@ -21,3 +21,13 @@ F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.dll
 F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\refint\nou_server.dll
 F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.pdb
 D:\Files_D\c#\NoU\nou_server\obj\Debug\net8.0\nou_server.sourcelink.json
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\nou_server.exe
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\nou_server.deps.json
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\nou_server.runtimeconfig.json
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\nou_server.dll
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\nou_server.pdb
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.genruntimeconfig.cache
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\ref\nou_server.dll
+F:\Files_F\_C#\NoU\nou_server\bin\Debug\net8.0\Newtonsoft.Json.dll
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.csproj.AssemblyReference.cache
+F:\Files_F\_C#\NoU\nou_server\obj\Debug\net8.0\nou_server.csproj.Up2Date
