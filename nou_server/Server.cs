@@ -135,7 +135,7 @@ public class Server
                     GenerateDrawDeck();
                     break;
 
-                case "getstartcards":
+                case "getstartdeck":
                     // get 7 random cards for each player
                     List<Card> tmp = new List<Card>();
                     Random r = new Random();
@@ -147,12 +147,12 @@ public class Server
                     }
                     
                     // sending
-                    json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray()); 
-                    byte[] dataBuffer = Encoding.UTF8.GetBytes($"startcards::{json}");
+                    json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray());
+                    Console.WriteLine($"startdeck::{json}");
+                    byte[] dataBuffer = Encoding.UTF8.GetBytes($"startdeck::{json}");
                     stream.Write(dataBuffer, 0, buffer.Length);
                     break;
             }
-            Console.WriteLine("[MSG] " + data);
         }
 
         // Disonnect if client disconnected

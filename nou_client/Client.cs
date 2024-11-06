@@ -79,11 +79,11 @@ public class Client
                     break;
 
                 case "start":
-                    TCP("getstartcards::");
+                    TCP("getstartdeck::");
                     OnGameStart?.Invoke();
                     break;
 
-                case "startcards":
+                case "startdeck":
                     // TODO - via event
                     List<Card> tmp_startCards = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Card>>(parts[1]);
                     OnStartCardsReceived?.Invoke(tmp_startCards);

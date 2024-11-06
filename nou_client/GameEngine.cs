@@ -85,7 +85,7 @@ public class GameEngine
     private void GameStart()
     {
         client.OnGameStart -= GameStart;
-        gameStarted = true;   
+        gameStarted = true;
     }
     private void RecieveDeck(List<Card> startDeck)
     {
