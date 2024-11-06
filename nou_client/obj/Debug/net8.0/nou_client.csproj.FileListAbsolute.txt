@@ -31,3 +31,6 @@ F:\Files_F\_C#\NoU\nou_client\obj\Debug\net8.0\ref\nou_client.dll
 D:\Files_D\c#\NoU\nou_client\bin\Debug\net8.0\Newtonsoft.Json.dll
 D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.csproj.AssemblyReference.cache
 D:\Files_D\c#\NoU\nou_client\obj\Debug\net8.0\nou_client.csproj.CopyComplete
+F:\Files_F\_C#\NoU\nou_client\bin\Debug\net8.0\Newtonsoft.Json.dll
+F:\Files_F\_C#\NoU\nou_client\obj\Debug\net8.0\nou_client.csproj.AssemblyReference.cache
+F:\Files_F\_C#\NoU\nou_client\obj\Debug\net8.0\nou_client.csproj.Up2Date

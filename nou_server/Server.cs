@@ -81,7 +81,7 @@ public class Server
         {
             TcpClient client = tcpServer.AcceptTcpClient();
             lock (tcpClients) tcpClients.Add(client); // lock to prevent race condition
-            Console.WriteLine($"[LOG] TCP connect: {client.Client.RemoteEndPoint}");
+            // Console.WriteLine($"[LOG] TCP connect: {client.Client.RemoteEndPoint}");
             
             Task clientThread = new Task(() => HandleClient(client)); // Create thread for new client   TODO-delete_on_exit
             clientThread.Start();
@@ -104,54 +104,68 @@ public class Server
             string[] parts = data.Split("::");
             string json = "";
             switch(parts[0]){
-                case "connect":
+
+                case "connect": // Player connect
                     Player newPlayer = new Player(int.Parse(parts[1]), parts[2]);
                     players.Add(newPlayer);
-                    Console.WriteLine($"[TCP] client connected: {newPlayer.name} from {client.Client.RemoteEndPoint}");
+                    Console.WriteLine($"[TCP] client \"{newPlayer.name}\" connected from {client.Client.RemoteEndPoint}");
                     
                     // send all players updated list
                     json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
-                    TcpBroadcast($"playerlist::{json}");
-                    Console.WriteLine($"playerlist::{json}");
+                    TcpBroadcast($"updatelobby::{json}");
                     break;
 
-                case "disconnect":
+                case "disconnect": // Player disconnect
                     foreach(Player p in players){
                         if(p.id == int.Parse(parts[1])){
-                            Console.WriteLine($"[TCP] client disconnected: {p.name} from {client.Client.RemoteEndPoint}");
+                            Console.WriteLine($"[TCP] client \"{p.name}\" disconnected from {client.Client.RemoteEndPoint}");
                             players.Remove(p);
                             break;
                         }
                     }
                     // Send everyone updated list
                     json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
-                    TcpBroadcast($"playerlist::{json}");
-                    Console.WriteLine($"playerlist::{json}");
+                    TcpBroadcast($"updatelobby::{json}");
                     break;
 
-                case "start":
+                case "start": // Game start
+                    GenerateDrawDeck();
                     TcpBroadcast("start::");
                     Console.WriteLine($"[TCP] Game started!");
-                    GenerateDrawDeck();
+
+                    // sending decks
+                    lock(tcpClients)
+                    {
+                        foreach(TcpClient c in tcpClients)
+                        {
+                            // get 7 random cards for each player
+                            List<Card> tmp = new List<Card>();
+                            Random r = new Random();
+                            for(int i=0;i<7;i++)
+                            {
+                                int rand = r.Next(0, drawDeck.Count);
+                                tmp.Add(drawDeck[rand]);
+                                drawDeck.RemoveAt(rand);
+                            }
+                            json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray());
+
+                            // sending
+                            byte[] b = Encoding.UTF8.GetBytes($"startdeck::{json}");
+                            try{
+                                NetworkStream s = c.GetStream();
+                                s.Write(b, 0, b.Length);
+                                s.Close();
+                            }
+                            catch{}
+                        }
+                    }
+                    break;
+            
+                case "play":
+                    Card card = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
+                    topCard = card;
                     break;
 
-                case "getstartdeck":
-                    // get 7 random cards for each player
-                    List<Card> tmp = new List<Card>();
-                    Random r = new Random();
-                    for(int i=0;i<7;i++)
-                    {
-                        int rand = r.Next(0, 7);
-                        tmp.Add(drawDeck[rand]);
-                        drawDeck.RemoveAt(rand);
-                    }
-                    
-                    // sending
-                    json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray());
-                    Console.WriteLine($"startdeck::{json}");
-                    byte[] dataBuffer = Encoding.UTF8.GetBytes($"startdeck::{json}");
-                    stream.Write(dataBuffer, 0, buffer.Length);
-                    break;
             }
         }
 

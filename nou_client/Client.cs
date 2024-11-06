@@ -15,17 +15,17 @@ public class Client
     
     private TcpClient client;
     private NetworkStream stream;
-    private List<Player> players;
 
     public event Action OnGameStart;
+    public event Action<List<Player>> OnLobbyUpdated;
     public event Action<List<Card>> OnStartCardsReceived;
+    public event Action<Card> OnTopCardUpdated;
     
 
-    public Client(string ip, int port, Player localPlayer, List<Player> players){
+    public Client(string ip, int port, Player localPlayer){
         this.ip = ip;
         this.port = port;
         this.localPlayer = localPlayer;
-        this.players = players;
         ConnectToServer();
     }
 
@@ -71,22 +71,25 @@ public class Client
             // ====================== TCP MESSAGE COMMANDS ======================
             string[] parts = data.Split("::");
             switch(parts[0]){
-                case "playerlist":
+                case "updatelobby":
                     // TODO - make via function event to update player list
                     List<Player> tmp_players = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Player>>(parts[1]);
-                    players.Clear();
-                    foreach (Player p in tmp_players) players.Add(p);
+                    OnLobbyUpdated?.Invoke(tmp_players);
                     break;
 
                 case "start":
-                    TCP("getstartdeck::");
                     OnGameStart?.Invoke();
                     break;
 
                 case "startdeck":
                     // TODO - via event
-                    List<Card> tmp_startCards = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Card>>(parts[1]);
-                    OnStartCardsReceived?.Invoke(tmp_startCards);
+                    List<Card> tmp_startDeck = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Card>>(parts[1]);
+                    OnStartCardsReceived?.Invoke(tmp_startDeck);
+                    break;
+
+                case "updatetopcard":
+                    Card tmp_topcard = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
+                    OnTopCardUpdated?.Invoke(tmp_topcard);
                     break;
             }
         }
