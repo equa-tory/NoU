@@ -11,6 +11,7 @@ public class GameEngine
     private Client client;
     private Player localPlayer;
     public List<Player> players = new List<Player>();
+    private List<Card> deck = new List<Card>();
 
     private bool gameStarted = false;
     
@@ -27,6 +28,10 @@ public class GameEngine
         localPlayer = new Player(name: nickname, id: r.Next(0, 10000));
         client = new Client(ip, port, localPlayer, players);
         players.Add(localPlayer);
+
+        // Events
+        client.OnGameStart += GameStart;
+        client.OnStartCardsReceived += RecieveDeck;
     }
 
     public void Run() { while (isRunning) Update(); }
@@ -34,6 +39,7 @@ public class GameEngine
     {
         // DrawFrame
         if(!gameStarted) DrawLobby();
+        else DrawGame();
 
         if(Console.KeyAvailable) Input();
 
@@ -59,21 +65,32 @@ public class GameEngine
                 client.TCP("start");
                 break;
 
-            case ConsoleKey.UpArrow:
-                Console.WriteLine("\t"+Underline("Luzevg"));
-                Console.WriteLine("Qdness"+"\t\t"+"Equa");
-                Console.WriteLine("\t"+"Axlamon");
-                break;
+            // case ConsoleKey.UpArrow:
+            //     Console.WriteLine("\t"+Underline("Luzevg"));
+            //     Console.WriteLine("Qdness"+"\t\t"+"Equa");
+            //     Console.WriteLine("\t"+"Axlamon");
+            //     break;
 
-            case ConsoleKey.RightArrow:
-                Console.WriteLine("\tLuzevg");
-                Console.WriteLine("Qdness\t\t"+Underline("Equa"));
-                Console.WriteLine("\tAxlamon");
-                break;
+            // case ConsoleKey.RightArrow:
+            //     Console.WriteLine("\tLuzevg");
+            //     Console.WriteLine("Qdness\t\t"+Underline("Equa"));
+            //     Console.WriteLine("\tAxlamon");
+            //     break;
                 
             default:
                 break;
         }
+    }
+    
+    private void GameStart()
+    {
+        client.OnGameStart -= GameStart;
+        gameStarted = true;   
+    }
+    private void RecieveDeck(List<Card> startDeck)
+    {
+        deck.Clear();
+        foreach (Card c in startDeck) deck.Add(c);
     }
     #endregion
    
@@ -91,6 +108,12 @@ public class GameEngine
         Console.WriteLine(Underline(localPlayer.name));
         foreach (Player player in players) 
             if(localPlayer.id != player.id) Console.WriteLine(player.name);
+    }
+
+    private void DrawGame()
+    {
+        Console.WriteLine(" === Deck: ===");
+        foreach(var c in deck) Console.WriteLine($"{c.type} {c.color}");
     }
     #endregion
 

@@ -49,6 +49,7 @@ public class Server
     private List<Player> players = new List<Player>();
     private List<Card> drawDeck = new List<Card>();
     private Card topCard;
+    // private bool gameStarted;
 
     //--------------------------------------------------------------------------------------------
 
@@ -128,10 +129,27 @@ public class Server
                     Console.WriteLine($"playerlist::{json}");
                     break;
 
-                case "start": // > 2 and < 10 players
+                case "start":
+                    TcpBroadcast("start::");
                     Console.WriteLine($"[TCP] Game started!");
-
                     GenerateDrawDeck();
+                    break;
+
+                case "getstartcards":
+                    // get 7 random cards for each player
+                    List<Card> tmp = new List<Card>();
+                    Random r = new Random();
+                    for(int i=0;i<7;i++)
+                    {
+                        int rand = r.Next(0, 7);
+                        tmp.Add(drawDeck[rand]);
+                        drawDeck.RemoveAt(rand);
+                    }
+                    
+                    // sending
+                    json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray()); 
+                    byte[] dataBuffer = Encoding.UTF8.GetBytes($"startcards::{json}");
+                    stream.Write(dataBuffer, 0, buffer.Length);
                     break;
             }
             Console.WriteLine("[MSG] " + data);
