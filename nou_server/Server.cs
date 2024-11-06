@@ -54,6 +54,7 @@ public class Server
 
     public Server(string ip, int port) {
         tcpServer = new TcpListener(IPAddress.Parse(ip), port);
+        Console.CancelKeyPress += (sender, args) => Stop();
     }
 
     public void Start()
@@ -68,7 +69,8 @@ public class Server
     public void Stop(){
         isRunning = false;
         tcpServer.Stop();
-        Console.WriteLine("[LOG] Server stopped...");
+        // Console.WriteLine("[LOG] Server stopped...");
+        Console.Clear();
     }
 
     #region TCP
@@ -95,9 +97,10 @@ public class Server
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
 
-            // ====================== TCP MESSAGE COMMANDS ======================            
+            // TODO - make via function event to update player list !!!!!!!!!!!!!
+            // ====================== TCP MESSAGE COMMANDS ======================
             // tcp message commands
-            string[] parts = data.Split("::"); 
+            string[] parts = data.Split("::");
             string json = "";
             switch(parts[0]){
                 case "connect":
@@ -107,7 +110,8 @@ public class Server
                     
                     // send all players updated list
                     json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
-                    TcpBroadcast(json);
+                    TcpBroadcast($"playerlist::{json}");
+                    Console.WriteLine($"playerlist::{json}");
                     break;
 
                 case "disconnect":
@@ -118,11 +122,11 @@ public class Server
                             break;
                         }
                     }
+                    // Send everyone updated list
+                    json = Newtonsoft.Json.JsonConvert.SerializeObject(players.ToArray()); 
+                    TcpBroadcast($"playerlist::{json}");
+                    Console.WriteLine($"playerlist::{json}");
                     break;
-
-                // case "msg":
-                //     TcpBroadcast(parts[1]);
-                //     break;
 
                 case "start": // > 2 and < 10 players
                     Console.WriteLine($"[TCP] Game started!");
@@ -136,6 +140,7 @@ public class Server
         // Disonnect if client disconnected
         DisconnectTCPClient(client);
 
+        // ================== bad idea ==================
         //== Send every updated list if someone disconnected
         // 
         // lock(client) { // lock to prevent race condition (disconnect)

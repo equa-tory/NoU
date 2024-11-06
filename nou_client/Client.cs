@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace NoUC;
 
@@ -73,8 +74,15 @@ public class Client
                 //     Console.WriteLine("[SERVER] msg: " + parts[1]);
                 //     break;
 
-                case "newplayer":
-                    if(int.Parse(parts[2]) != localPlayer.id) players.Add(new Player(name: parts[1], id: int.Parse(parts[2])));
+                case "playerlist":
+                    // if(int.Parse(parts[2]) != localPlayer.id) players.Add(new Player(name: parts[1], id: int.Parse(parts[2])));
+                    // ge.frameRate = 100000;
+
+                    // TODO - make via function event to update player list
+                    List<Player> tmp = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Player>>(parts[1]);
+                    players.Clear();
+                    foreach (Player p in tmp) players.Add(p);
+                    foreach(var p in tmp) Console.WriteLine($"new: {p.name} id: {p.id}");
                     break;
             }
         }

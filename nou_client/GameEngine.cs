@@ -6,9 +6,10 @@ public class GameEngine
 {
     private static readonly CancellationTokenSource cts = new CancellationTokenSource();
     private bool isRunning = true;
-    private int frameRate = 100;
+    public int frameRate = 100;
 
     private Client client;
+    private Player localPlayer;
     public List<Player> players = new List<Player>();
 
     private bool gameStarted = false;
@@ -22,7 +23,8 @@ public class GameEngine
     {
         Console.CancelKeyPress += (sender, args) => Exit();
 
-        Player localPlayer = new Player(nickname);
+        Random r = new Random();
+        localPlayer = new Player(name: nickname, id: r.Next(0, 10000));
         client = new Client(ip, port, localPlayer, players);
         players.Add(localPlayer);
     }
@@ -80,15 +82,15 @@ public class GameEngine
     #region Frames
     private void DrawLobby()
     {
-        if(players.Count >= 2) Console.WriteLine("Press S to start the game!");
+        // if players >2 and < 10 and local player is host
+        if(players.Count >= 2 && players.Count <= 10 && localPlayer.id == players[0].id) 
+            Console.WriteLine("Press S to start the game!");
         Console.WriteLine("=== Lobby: ===");
 
-        int i = 0;
-        foreach (Player player in players) {
-            if(i == 0) Console.WriteLine(Underline(player.name));
-            else Console.WriteLine(player.name);
-            i++;
-        }
+        // Print player names
+        Console.WriteLine(Underline(localPlayer.name));
+        foreach (Player player in players) 
+            if(localPlayer.id != player.id) Console.WriteLine(player.name);
     }
     #endregion
 

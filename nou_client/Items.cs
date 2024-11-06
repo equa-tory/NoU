@@ -34,7 +34,6 @@ public class Player
     {
         this.name = name;
         this.cardsLeft = cardsLeft;
-        Random r = new Random();
-        this.id = r.Next(0, 10000);
+        this.id = id;
     }
 }
