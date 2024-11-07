@@ -43,8 +43,7 @@ public class GameEngine
         // Events
         client.OnLobbyUpdated += UpdateLobby;
         client.OnGameStart += GameStart;
-        // client.OnTopCardUpdated += UpdateTopCard;
-        client.OnTopCardUpdated += DrawGame;
+        client.OnTopCardUpdated += UpdateTopCard;
 
         DrawLobby();
     }
@@ -91,12 +90,17 @@ public class GameEngine
             case ConsoleKey.D5:
             case ConsoleKey.D6:
             case ConsoleKey.D7:
+                if(!localPlayer.isTurn) break;
                 if(gameState != GameState.Started) break;
+
                 int numberPressed = (int)char.GetNumericValue(key.KeyChar)-1;
                 if(numberPressed >= deck.Count) break;
+                
                 string json = Newtonsoft.Json.JsonConvert.SerializeObject(deck[numberPressed]);
                 deck.RemoveAt(numberPressed);
-                Console.WriteLine($"play::{json}");
+                localPlayer.cardsLeft--;
+                localPlayer.isTurn = false;
+                json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(localPlayer)}";
                 client.TCP($"play::{json}");
                 break;
 
@@ -129,17 +133,20 @@ public class GameEngine
         DrawLobby();
     }
     
-    private void GameStart(List<Card> startDeck)
+    private void GameStart(List<Card> startDeck, int startPlayerId)
     {
         gameState = GameState.Started;
         this.deck.Clear();
         this.deck = startDeck;
+
+        localPlayer.isTurn = startPlayerId == localPlayer.id;
+
         DrawGame();
     }
 
-    private void UpdateTopCard(Card topCard)
+    private void UpdateTopCard(Card topCard, Player nextPlayer)
     {
-        // this.topCard = topCard;
+        if(nextPlayer.id == localPlayer.id) localPlayer.isTurn = true;
         DrawGame(topCard);
     }
     
@@ -178,7 +185,9 @@ public class GameEngine
             Console.WriteLine(CardToText(c));
             // Reset color
             // Console.ResetColor();
+
         }
+        Console.WriteLine($"Your turn: {localPlayer.isTurn}");
     }
 
     #endregion
@@ -198,8 +207,7 @@ public class GameEngine
 
         client.OnLobbyUpdated -= UpdateLobby;
         client.OnGameStart -= GameStart;
-        // client.OnTopCardUpdated -= UpdateTopCard;
-        client.OnTopCardUpdated -= DrawGame;
+        client.OnTopCardUpdated -= UpdateTopCard;
     }
 
     private string Underline(string text) { return "\x1B[4m"+text+"\x1B[0m"; }

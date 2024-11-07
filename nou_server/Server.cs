@@ -2,8 +2,6 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using Newtonsoft.Json.Linq;
 
 namespace NoUS;
 
@@ -12,6 +10,7 @@ public class Player
     public int id { get; set; }
     public string name { get; set; }
     public int cardsLeft { get; set; }
+    public bool isTurn { get; set; } = false;
 
     public Player(int id,string name, int cardsLeft = 7)
     {
@@ -39,6 +38,9 @@ public class Card
 
 public class Server
 {
+
+    #region Variables
+
     private bool isRunning;
 
     // TCP
@@ -48,8 +50,8 @@ public class Server
     // Game
     private List<Player> players = new List<Player>();
     private List<Card> drawDeck = new List<Card>();
-    private Card topCard;
-    // private bool gameStarted;
+
+    #endregion
 
     //--------------------------------------------------------------------------------------------
 
@@ -133,6 +135,13 @@ public class Server
                 case "start": // Game start
                     GenerateDrawDeck();
                     
+                    Random r = new Random();
+
+                    // Select random player that turn
+                    int playerThatTurnIndex = r.Next(0, players.Count);
+                    Player playerThatTurn = players[playerThatTurnIndex];
+                    playerThatTurn.isTurn = true;
+                    
                     // sending decks
                     lock(tcpClients)
                     {
@@ -140,7 +149,7 @@ public class Server
                         {
                             // get 7 random cards for each player
                             List<Card> tmp = new List<Card>();
-                            Random r = new Random();
+
                             for(int i=0;i<7;i++)
                             {
                                 int rand = r.Next(0, drawDeck.Count);
@@ -148,6 +157,9 @@ public class Server
                                 drawDeck.RemoveAt(rand);
                             }
                             json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray());
+                            
+                            // Select player that turn
+                            json += $"::{playerThatTurn.id}";
 
                             // sending
                             byte[] b = Encoding.UTF8.GetBytes($"start::{json}");
@@ -162,17 +174,33 @@ public class Server
                     Console.WriteLine($"[TCP] Game started!");
                     break;
             
-                case "play":
-                    // Card card = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
-                    // topCard = card;
-                    // json = Newtonsoft.Json.JsonConvert.SerializeObject(topCard);
-                    Console.WriteLine($"updatetopcard::{parts[1]}");
-                    TcpBroadcast($"updatetopcard::{parts[1]}");
+                case "play": // Player play card
+                    int nextPlayerIndex = 0;
+                    foreach(Player p in players) {
+                        nextPlayerIndex++;
+                        Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
+                        if(p.id == lastPlayer.id) {
+                            if(p.isTurn) {
+                                p.isTurn = false;
+                                Console.WriteLine($"card played: {parts[1]}");
+                                
+                                if(nextPlayerIndex > players.Count) nextPlayerIndex = 0;
+                                else if(nextPlayerIndex < 0) nextPlayerIndex = players.Count - 1;
+
+                                // send all players updated top card and next layer that turn
+                                json = $"{parts[1]}::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
+                                TcpBroadcast($"updatetopcard::{json}");
+                            }
+                        }
+                    }
+                    // if(playedId > players.Count) playedId = 0;
+                    // else if(playedId < 0) playedId = players.Count - 1;
                     break;
 
             }
         }
 
+        #region Disconnect
         // Disonnect if client disconnected
         DisconnectTCPClient(client);
 
@@ -185,6 +213,8 @@ public class Server
         // }
         // client.Close();
         // Console.WriteLine("[LOG] Client disconnected!");
+        #endregion
+    
     }
 
     #region Game

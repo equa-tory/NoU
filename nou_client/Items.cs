@@ -29,6 +29,7 @@ public class Player
     public int id { get; set; }
     public string name { get; set; }
     public int cardsLeft { get; set; }
+    public bool isTurn { get; set; } = false;
 
     public Player(string name, int id = 0, int cardsLeft = 7)
     {

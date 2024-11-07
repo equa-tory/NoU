@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Newtonsoft.Json.Linq;
 
 namespace NoUC;
 
@@ -19,9 +18,9 @@ public class Client
     private TcpClient client;
     private NetworkStream stream;
 
-    public event Action<List<Card>> OnGameStart;
+    public event Action<List<Card>, int> OnGameStart;
     public event Action<List<Player>> OnLobbyUpdated;
-    public event Action<Card> OnTopCardUpdated;
+    public event Action<Card, Player> OnTopCardUpdated;
     
     #endregion
 
@@ -89,12 +88,14 @@ public class Client
 
                 case "start":
                     List<Card> startDeck = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Card>>(parts[1]);
-                    OnGameStart?.Invoke(startDeck);
+                    int startPlayerId = int.Parse(parts[2]);
+                    OnGameStart?.Invoke(startDeck, startPlayerId);
                     break;
 
                 case "updatetopcard":
                     Card topcard = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
-                    OnTopCardUpdated?.Invoke(topcard);
+                    Player nextPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
+                    OnTopCardUpdated?.Invoke(topcard, nextPlayer);
                     break;
             }
         }
