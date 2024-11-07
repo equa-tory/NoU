@@ -22,7 +22,6 @@ public class GameEngine
     private Player localPlayer;
     public List<Player> players = new List<Player>();
     private List<Card> deck = new List<Card>();
-    private Card topCard = null;
 
     private GameState gameState = GameState.Lobby;
 
@@ -44,7 +43,8 @@ public class GameEngine
         // Events
         client.OnLobbyUpdated += UpdateLobby;
         client.OnGameStart += GameStart;
-        client.OnTopCardUpdated += UpdateTopCard;
+        // client.OnTopCardUpdated += UpdateTopCard;
+        client.OnTopCardUpdated += DrawGame;
 
         DrawLobby();
     }
@@ -93,11 +93,11 @@ public class GameEngine
             case ConsoleKey.D7:
                 if(gameState != GameState.Started) break;
                 int numberPressed = (int)char.GetNumericValue(key.KeyChar)-1;
-                Card card = deck[numberPressed];
-                deck.Remove(card);
-                string json = Newtonsoft.Json.JsonConvert.SerializeObject(card);
+                if(numberPressed >= deck.Count) break;
+                string json = Newtonsoft.Json.JsonConvert.SerializeObject(deck[numberPressed]);
+                deck.RemoveAt(numberPressed);
+                Console.WriteLine($"play::{json}");
                 client.TCP($"play::{json}");
-                DrawGame();
                 break;
 
 
@@ -139,8 +139,8 @@ public class GameEngine
 
     private void UpdateTopCard(Card topCard)
     {
-        this.topCard = topCard;
-        DrawGame();
+        // this.topCard = topCard;
+        DrawGame(topCard);
     }
     
     #endregion
@@ -161,7 +161,7 @@ public class GameEngine
             if(localPlayer.id != player.id) Console.WriteLine(player.name);
     }
 
-    private void DrawGame()
+    private void DrawGame(Card topCard = null)
     {
         Console.Clear();
         Console.WriteLine($"Top Card: {CardToText(topCard)}");
@@ -197,7 +197,8 @@ public class GameEngine
 
         client.OnLobbyUpdated -= UpdateLobby;
         client.OnGameStart -= GameStart;
-        client.OnTopCardUpdated -= UpdateTopCard;
+        // client.OnTopCardUpdated -= UpdateTopCard;
+        client.OnTopCardUpdated -= DrawGame;
     }
 
     private string Underline(string text) { return "\x1B[4m"+text+"\x1B[0m"; }

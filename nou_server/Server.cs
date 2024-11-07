@@ -154,7 +154,6 @@ public class Server
                             try{
                                 NetworkStream s = c.GetStream();
                                 s.Write(b, 0, b.Length);
-                                s.Close();
                             }
                             catch{}
                         }
@@ -167,6 +166,7 @@ public class Server
                     // Card card = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
                     // topCard = card;
                     // json = Newtonsoft.Json.JsonConvert.SerializeObject(topCard);
+                    Console.WriteLine($"updatetopcard::{parts[1]}");
                     TcpBroadcast($"updatetopcard::{parts[1]}");
                     break;
 
