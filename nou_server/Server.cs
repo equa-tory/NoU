@@ -191,6 +191,7 @@ public class Server
     
     private void GenerateDrawDeck()
     {
+        drawDeck.Clear();
         // add number cards
         foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor)))
         {

@@ -149,6 +149,7 @@ public class GameEngine
 
     private void DrawLobby()
     {
+        gameState = GameState.Lobby;
         Console.Clear();
         // if players >2 and < 10 and local player is host
         if(players.Count >= 2 && players.Count <= 10 && localPlayer.id == players[0].id) 
