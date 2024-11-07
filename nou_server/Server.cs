@@ -89,6 +89,7 @@ public class Server
     }
 
     private void HandleClient(TcpClient client){ // Function for every client
+        #region Skip
         NetworkStream stream = client.GetStream();
         byte[] buffer = new byte[1024];
 
@@ -98,6 +99,7 @@ public class Server
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
 
+        #endregion
             // TODO - make via function event to update player list !!!!!!!!!!!!!
             // ====================== TCP MESSAGE COMMANDS ======================
             // tcp message commands
@@ -130,9 +132,7 @@ public class Server
 
                 case "start": // Game start
                     GenerateDrawDeck();
-                    TcpBroadcast("start::");
-                    Console.WriteLine($"[TCP] Game started!");
-
+                    
                     // sending decks
                     lock(tcpClients)
                     {
@@ -150,7 +150,7 @@ public class Server
                             json = Newtonsoft.Json.JsonConvert.SerializeObject(tmp.ToArray());
 
                             // sending
-                            byte[] b = Encoding.UTF8.GetBytes($"startdeck::{json}");
+                            byte[] b = Encoding.UTF8.GetBytes($"start::{json}");
                             try{
                                 NetworkStream s = c.GetStream();
                                 s.Write(b, 0, b.Length);
@@ -159,11 +159,15 @@ public class Server
                             catch{}
                         }
                     }
+                    // TcpBroadcast("start::");
+                    Console.WriteLine($"[TCP] Game started!");
                     break;
             
                 case "play":
-                    Card card = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
-                    topCard = card;
+                    // Card card = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
+                    // topCard = card;
+                    // json = Newtonsoft.Json.JsonConvert.SerializeObject(topCard);
+                    TcpBroadcast($"updatetopcard::{parts[1]}");
                     break;
 
             }
@@ -182,6 +186,43 @@ public class Server
         // client.Close();
         // Console.WriteLine("[LOG] Client disconnected!");
     }
+
+    #region Game
+    
+    private void GenerateDrawDeck()
+    {
+        // add number cards
+        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor)))
+        {
+            for(int i=1;i<10;i++)
+            {
+                if(color == Card.CardColor.none) continue;
+                drawDeck.Add(new Card(color, Card.CardType.number, i));
+                drawDeck.Add(new Card(color, Card.CardType.number, i));
+            }
+            drawDeck.Add(new Card(color, Card.CardType.number, 0));
+        }
+        // add action cards
+        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor))){
+            foreach(Card.CardType type in Enum.GetValues(typeof(Card.CardType)))
+            {
+                if(type == Card.CardType.wild || type == Card.CardType.wildDrawFour || color == Card.CardColor.none || type == Card.CardType.number) continue;
+                drawDeck.Add(new Card(color, type));
+                drawDeck.Add(new Card(color, type));
+            }
+        }
+        // add wild cards
+        for(int i=0;i<4;i++)
+        {
+            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wild));
+            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wildDrawFour));
+        }
+
+        // Debug cards
+        // for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
+    }
+    
+    #endregion
     
     // Send data to all connected clients
     private void TcpBroadcast(string data)
@@ -219,41 +260,6 @@ public class Server
         catch(Exception e){
             Console.WriteLine("[ERR] TCP Disconnect: " + e);
         }
-    }
-    #endregion
-
-    #region Game
-    private void GenerateDrawDeck()
-    {
-        // add number cards
-        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor)))
-        {
-            for(int i=1;i<10;i++)
-            {
-                if(color == Card.CardColor.none) continue;
-                drawDeck.Add(new Card(color, Card.CardType.number, i));
-                drawDeck.Add(new Card(color, Card.CardType.number, i));
-            }
-            drawDeck.Add(new Card(color, Card.CardType.number, 0));
-        }
-        // add action cards
-        foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor))){
-            foreach(Card.CardType type in Enum.GetValues(typeof(Card.CardType)))
-            {
-                if(type == Card.CardType.wild || type == Card.CardType.wildDrawFour || color == Card.CardColor.none || type == Card.CardType.number) continue;
-                drawDeck.Add(new Card(color, type));
-                drawDeck.Add(new Card(color, type));
-            }
-        }
-        // add wild cards
-        for(int i=0;i<4;i++)
-        {
-            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wild));
-            drawDeck.Add(new Card(Card.CardColor.none, Card.CardType.wildDrawFour));
-        }
-
-        // Debug cards
-        // for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
     }
     #endregion
 

@@ -2,8 +2,18 @@ using System;
 
 namespace NoUC;
 
+public enum GameState
+{
+    Lobby,
+    Started,
+    Ended
+}
+
 public class GameEngine
 {
+
+    #region Variables
+
     private static readonly CancellationTokenSource cts = new CancellationTokenSource();
     private bool isRunning = true;
     public int frameRate = 100;
@@ -12,13 +22,15 @@ public class GameEngine
     private Player localPlayer;
     public List<Player> players = new List<Player>();
     private List<Card> deck = new List<Card>();
+    private Card topCard = null;
 
-    private bool gameStarted = false;
-    
+    private GameState gameState = GameState.Lobby;
+
+    #endregion
     
     // ======================================================
 
-
+    #region Main
     // Start()
     public GameEngine(string nickname, string ip, int port)
     {
@@ -32,7 +44,6 @@ public class GameEngine
         // Events
         client.OnLobbyUpdated += UpdateLobby;
         client.OnGameStart += GameStart;
-        client.OnStartCardsReceived += RecieveDeck;
         client.OnTopCardUpdated += UpdateTopCard;
 
         DrawLobby();
@@ -51,9 +62,12 @@ public class GameEngine
         // Console.Clear();
     }
     
+    #endregion
+
     // ======================================================
 
     #region Game
+    
     private void Input()
     {
         ConsoleKeyInfo key = Console.ReadKey(true);
@@ -66,7 +80,7 @@ public class GameEngine
                 return;
 
             case ConsoleKey.S:
-                if(!gameStarted && players.Count >= 2 && players.Count <= 10 && localPlayer.id == players[0].id)
+                if(gameState != GameState.Started && players.Count >= 2 && players.Count <= 10 && localPlayer.id == players[0].id)
                     client.TCP("start::");
                 break;
 
@@ -77,12 +91,12 @@ public class GameEngine
             case ConsoleKey.D5:
             case ConsoleKey.D6:
             case ConsoleKey.D7:
-                if(!gameStarted) break;
-                int numberPressed = (int)char.GetNumericValue(key.KeyChar);
+                if(gameState != GameState.Started) break;
+                int numberPressed = (int)char.GetNumericValue(key.KeyChar)-1;
                 Card card = deck[numberPressed];
+                deck.Remove(card);
                 string json = Newtonsoft.Json.JsonConvert.SerializeObject(card);
                 client.TCP($"play::{json}");
-                deck.RemoveAt(numberPressed);
                 DrawGame();
                 break;
 
@@ -104,65 +118,35 @@ public class GameEngine
         }
     }
     
-    private void UpdateLobby(List<Player> tmp_players)
+    #endregion
+
+    #region Events
+
+    private void UpdateLobby(List<Player> players)
     {
-        players.Clear();
-        foreach (Player p in tmp_players) players.Add(p);
+        this.players.Clear();
+        foreach (Player p in players) this.players.Add(p);
         DrawLobby();
     }
-    private void GameStart()
+    
+    private void GameStart(List<Card> startDeck)
     {
-        gameStarted = true;
+        gameState = GameState.Started;
+        this.deck.Clear();
+        this.deck = startDeck;
         DrawGame();
     }
-    private void RecieveDeck(List<Card> startDeck)
-    {
-        deck.Clear();
-        int i = 0;
-        foreach (Card c in startDeck) { 
-            deck.Add(c);
-            i++;
-            Console.Write($"{i}.");
 
-            // Card color in console
-            // Console.ForegroundColor = c.color == Card.CardColor.red ? ConsoleColor.Red : c.color == Card.CardColor.blue ? ConsoleColor.Blue : c.color == Card.CardColor.green ? ConsoleColor.Green : c.color == Card.CardColor.yellow ? ConsoleColor.Yellow : ConsoleColor.White;
-
-            switch(c.type)
-            {
-                case Card.CardType.number:
-                    Console.WriteLine($"[{c.num.ToString().ToLower()[0]}]({c.color.ToString().ToLower()[0]})");
-                    break;
-                
-                case Card.CardType.wild:
-                    Console.WriteLine($"[{c.type.ToString().ToLower()[0]}]");
-                    break;
-                
-                case Card.CardType.wildDrawFour:
-                    Console.WriteLine($"[+4w]");
-                    break;
-
-                case Card.CardType.drawTwo:
-                    Console.WriteLine($"[+2]({c.color.ToString().ToLower()[0]})");
-                    break;
-
-                default:
-                    Console.WriteLine($"[{c.type.ToString().ToLower()[0]}]({c.color.ToString().ToLower()[0]})");
-                    break;
-            }
-            // Reset color
-            // Console.ResetColor();
-
-        }
-    }
     private void UpdateTopCard(Card topCard)
     {
-        DrawGame(topCard);
+        this.topCard = topCard;
+        DrawGame();
     }
+    
     #endregion
    
-    // ======================================================
-
     #region Frames
+
     private void DrawLobby()
     {
         Console.Clear();
@@ -177,18 +161,31 @@ public class GameEngine
             if(localPlayer.id != player.id) Console.WriteLine(player.name);
     }
 
-    private void DrawGame(Card topCard = null)
+    private void DrawGame()
     {
         Console.Clear();
-        Console.WriteLine($"Top Card: {topCard?.type} {topCard?.color}");
+        Console.WriteLine($"Top Card: {CardToText(topCard)}");
         Console.WriteLine(" === Deck === ");
-        foreach(var c in deck) Console.WriteLine($"{c.type} {c.color}");
+
+        int i = 0;
+        foreach (Card c in deck) {
+            i++;
+
+            // Card color in console
+            // Console.ForegroundColor = c.color == Card.CardColor.red ? ConsoleColor.Red : c.color == Card.CardColor.blue ? ConsoleColor.Blue : c.color == Card.CardColor.green ? ConsoleColor.Green : c.color == Card.CardColor.yellow ? ConsoleColor.Yellow : ConsoleColor.White;
+            Console.Write($"{i}.");
+            Console.WriteLine(CardToText(c));
+            // Reset color
+            // Console.ResetColor();
+        }
     }
+
     #endregion
 
     // ======================================================
 
     #region Utils
+
     private void Exit()
     {
         // Disconnect from server
@@ -200,7 +197,6 @@ public class GameEngine
 
         client.OnLobbyUpdated -= UpdateLobby;
         client.OnGameStart -= GameStart;
-        client.OnStartCardsReceived -= RecieveDeck;
         client.OnTopCardUpdated -= UpdateTopCard;
     }
 
@@ -210,5 +206,36 @@ public class GameEngine
     {
         File.AppendAllText("log.txt", Environment.NewLine + DateTime.Now + " # " + msg);
     }
+ 
+    private string CardToText(Card c)
+    {
+        string res = "";
+        if(c == null) return "";
+        switch(c.type)
+        {
+            case Card.CardType.number:
+                res = $"[{c.num.ToString().ToLower()[0]}]({c.color.ToString().ToLower()[0]})";
+                break;
+            
+            case Card.CardType.wild:
+                res = $"[{c.type.ToString().ToLower()[0]}]";
+                break;
+            
+            case Card.CardType.wildDrawFour:
+                res = $"[+4w]";
+                break;
+
+            case Card.CardType.drawTwo:
+                res = $"[+2]({c.color.ToString().ToLower()[0]})";
+                break;
+
+            default:
+                res = $"[{c.type.ToString().ToLower()[0]}]({c.color.ToString().ToLower()[0]})";
+                break;
+        }
+        return res;
+    }
+    
     #endregion
+
 }
