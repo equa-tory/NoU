@@ -1,4 +1,5 @@
 using System;
+using System.Formats.Asn1;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -50,6 +51,7 @@ public class Server
     // Game
     private List<Player> players = new List<Player>();
     private List<Card> drawDeck = new List<Card>();
+    private bool turnForward = true;
 
     #endregion
 
@@ -177,24 +179,28 @@ public class Server
                 case "play": // Player play card
                     int nextPlayerIndex = 0;
                     foreach(Player p in players) {
-                        nextPlayerIndex++;
                         Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
                         if(p.id == lastPlayer.id) {
                             if(p.isTurn) {
                                 p.isTurn = false;
                                 Console.WriteLine($"card played: {parts[1]}");
                                 
-                                if(nextPlayerIndex > players.Count) nextPlayerIndex = 0;
+                                if(turnForward) nextPlayerIndex++; 
+                                else nextPlayerIndex--;
+                                
+                                if(nextPlayerIndex > players.Count-1) nextPlayerIndex = 0;
                                 else if(nextPlayerIndex < 0) nextPlayerIndex = players.Count - 1;
+
+                                players[nextPlayerIndex].isTurn = true;
 
                                 // send all players updated top card and next layer that turn
                                 json = $"{parts[1]}::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
                                 TcpBroadcast($"updatetopcard::{json}");
+                                break;
                             }
                         }
+                        nextPlayerIndex++;
                     }
-                    // if(playedId > players.Count) playedId = 0;
-                    // else if(playedId < 0) playedId = players.Count - 1;
                     break;
 
             }

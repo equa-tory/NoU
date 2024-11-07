@@ -22,6 +22,7 @@ public class GameEngine
     private Player localPlayer;
     public List<Player> players = new List<Player>();
     private List<Card> deck = new List<Card>();
+    private Card topCard = null;
 
     private GameState gameState = GameState.Lobby;
 
@@ -95,7 +96,10 @@ public class GameEngine
 
                 int numberPressed = (int)char.GetNumericValue(key.KeyChar)-1;
                 if(numberPressed >= deck.Count) break;
-                
+
+                // ===================== Turn logic =====================
+                if(topCard != null) if((deck[numberPressed].color == topCard.color && deck[numberPressed].type != Card.CardType.wild) || deck[numberPressed].type == topCard.type) break;
+
                 string json = Newtonsoft.Json.JsonConvert.SerializeObject(deck[numberPressed]);
                 deck.RemoveAt(numberPressed);
                 localPlayer.cardsLeft--;
@@ -146,8 +150,9 @@ public class GameEngine
 
     private void UpdateTopCard(Card topCard, Player nextPlayer)
     {
-        if(nextPlayer.id == localPlayer.id) localPlayer.isTurn = true;
-        DrawGame(topCard);
+        localPlayer.isTurn = nextPlayer.id == localPlayer.id;
+        this.topCard = topCard;
+        DrawGame();
     }
     
     #endregion
@@ -158,7 +163,7 @@ public class GameEngine
     {
         gameState = GameState.Lobby;
         Console.Clear();
-        // if players >2 and < 10 and local player is host
+        // if players > 2 and < 10 and local player is host
         if(players.Count >= 2 && players.Count <= 10 && localPlayer.id == players[0].id) 
             Console.WriteLine("Press S to start the game!");
         Console.WriteLine(" === Lobby === ");
@@ -169,7 +174,7 @@ public class GameEngine
             if(localPlayer.id != player.id) Console.WriteLine(player.name);
     }
 
-    private void DrawGame(Card topCard = null)
+    private void DrawGame()
     {
         Console.Clear();
         Console.WriteLine($"Top Card: {CardToText(topCard)}");
