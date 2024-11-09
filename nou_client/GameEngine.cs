@@ -98,14 +98,42 @@ public class GameEngine
                 if(numberPressed >= deck.Count) break;
 
                 // ===================== Turn logic =====================
-                if(topCard != null) if((deck[numberPressed].color == topCard.color && deck[numberPressed].type != Card.CardType.wild) || deck[numberPressed].type == topCard.type) break;
+                Card cc = deck[numberPressed];
+                if(topCard != null) {
+                    
+                    if(topCard.color == cc.color) {
+                        // Same color
+                        if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
+                            PlayCard(cc);
+                            break;
+                        }
+                        // Same wild
+                        else{
+                            if(topCard.type == Card.CardType.wild) {PlayCard(cc);break;}
+                            else if(topCard.type == Card.CardType.wildDrawFour) {PlayCard(cc);break;}
+                        }
+                    }
+                    else if(topCard.type == cc.type) {
+                        // Same number
+                        if(cc.type == Card.CardType.number)
+                        {
+                            if(cc.num == topCard.num)
+                            {
+                                PlayCard(cc);
+                                break;
+                            }
+                        }
+                        // Same Type
+                        else
+                        {
+                            PlayCard(cc);
+                            break;
+                        }
+                    }
 
-                string json = Newtonsoft.Json.JsonConvert.SerializeObject(deck[numberPressed]);
-                deck.RemoveAt(numberPressed);
-                localPlayer.cardsLeft--;
-                localPlayer.isTurn = false;
-                json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(localPlayer)}";
-                client.TCP($"play::{json}");
+                }
+                // First card
+                else PlayCard(cc);
                 break;
 
 
@@ -124,6 +152,16 @@ public class GameEngine
             default:
                 break;
         }
+    }
+
+    private void PlayCard(Card card)
+    {
+        string json = Newtonsoft.Json.JsonConvert.SerializeObject(card);
+        deck.Remove(card);
+        localPlayer.cardsLeft--;
+        localPlayer.isTurn = false;
+        json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(localPlayer)}";
+        client.TCP($"play::{json}");
     }
     
     #endregion

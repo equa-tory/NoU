@@ -52,6 +52,7 @@ public class Server
     private List<Player> players = new List<Player>();
     private List<Card> drawDeck = new List<Card>();
     private bool turnForward = true;
+    private Card topCard;
 
     #endregion
 
@@ -177,33 +178,52 @@ public class Server
                     break;
             
                 case "play": // Player play card
-                    int nextPlayerIndex = 0;
-                    foreach(Player p in players) {
-                        Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
-                        if(p.id == lastPlayer.id) {
-                            if(p.isTurn) {
-                                p.isTurn = false;
-                                Console.WriteLine($"card played: {parts[1]}");
-                                
-                                if(turnForward) nextPlayerIndex++; 
-                                else nextPlayerIndex--;
-                                
-                                if(nextPlayerIndex > players.Count-1) nextPlayerIndex = 0;
-                                else if(nextPlayerIndex < 0) nextPlayerIndex = players.Count - 1;
-
-                                players[nextPlayerIndex].isTurn = true;
-
-                                // send all players updated top card and next layer that turn
-                                json = $"{parts[1]}::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
-                                TcpBroadcast($"updatetopcard::{json}");
+                    // Card rightness check
+                    Card cc = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
+                    if(topCard != null) {
+                        
+                        if(topCard.color == cc.color) {
+                            // Same color
+                            if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
+                                topCard = cc;
+                                NextTurn(parts, json);
+                                break;
+                            }
+                            // Same wild
+                            else{
+                                if(topCard.type == Card.CardType.wild) {NextTurn(parts, json);break;}
+                                else if(topCard.type == Card.CardType.wildDrawFour) {NextTurn(parts, json);break;}
+                            }
+                        }
+                        else if(topCard.type == cc.type) {
+                            // Same number
+                            if(cc.type == Card.CardType.number)
+                            {
+                                if(cc.num == topCard.num)
+                                {
+                                    topCard = cc;
+                                    NextTurn(parts, json);
+                                    break;
+                                }
+                            }
+                            // Same Type
+                            else
+                            {
+                                topCard = cc;
+                                NextTurn(parts, json);
                                 break;
                             }
                         }
-                        nextPlayerIndex++;
+
+                    }
+                    // First card
+                    else {
+                        topCard = cc;
+                        NextTurn(parts, json);
                     }
                     break;
-
             }
+
         }
 
         #region Disconnect
@@ -223,6 +243,34 @@ public class Server
     
     }
 
+    private void NextTurn(string[] parts, string json)
+    {
+        int nextPlayerIndex = 0;
+        foreach(Player p in players) {
+            Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
+            if(p.id == lastPlayer.id) {
+                if(p.isTurn) {
+                    p.isTurn = false;
+                    Console.WriteLine($"card played: {parts[1]}");
+                    
+                    if(turnForward) nextPlayerIndex++;
+                    else nextPlayerIndex--;
+                    
+                    if(nextPlayerIndex > players.Count-1) nextPlayerIndex = 0;
+                    else if(nextPlayerIndex < 0) nextPlayerIndex = players.Count - 1;
+
+                    players[nextPlayerIndex].isTurn = true;
+
+                    // send all players updated top card and next layer that turn
+                    json = $"{parts[1]}::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
+                    TcpBroadcast($"updatetopcard::{json}");
+                    break;
+                }
+            }
+            nextPlayerIndex++;
+        }
+    }
+
     #region Game
     
     private void GenerateDrawDeck()
@@ -237,7 +285,7 @@ public class Server
                 drawDeck.Add(new Card(color, Card.CardType.number, i));
                 drawDeck.Add(new Card(color, Card.CardType.number, i));
             }
-            drawDeck.Add(new Card(color, Card.CardType.number, 0));
+            if(color != Card.CardColor.none) drawDeck.Add(new Card(color, Card.CardType.number, 0));
         }
         // add action cards
         foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor))){
@@ -256,7 +304,7 @@ public class Server
         }
 
         // Debug cards
-        // for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
+        for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
     }
     
     #endregion

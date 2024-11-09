@@ -11,6 +11,7 @@ public class Program
         string ip = "127.0.0.1";
         int port = 3108;
 
+        // if(args.Length > 0) nickname = args[0]; // nicname input
         if(args.Length > 0) ip = args[0]; // ip input
         else if(args.Length > 1) port = int.Parse(args[1]); // port input
 
