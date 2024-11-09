@@ -180,6 +180,7 @@ public class GameEngine
         gameState = GameState.Started;
         this.deck.Clear();
         this.deck = startDeck;
+        topCard = null;
 
         localPlayer.isTurn = startPlayerId == localPlayer.id;
 

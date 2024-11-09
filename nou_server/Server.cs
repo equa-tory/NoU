@@ -186,13 +186,13 @@ public class Server
                             // Same color
                             if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
                                 topCard = cc;
-                                NextTurn(parts, json);
+                                PlayCard(parts, json);
                                 break;
                             }
                             // Same wild
                             else{
-                                if(topCard.type == Card.CardType.wild) {NextTurn(parts, json);break;}
-                                else if(topCard.type == Card.CardType.wildDrawFour) {NextTurn(parts, json);break;}
+                                if(topCard.type == Card.CardType.wild) {PlayCard(parts, json);break;}
+                                else if(topCard.type == Card.CardType.wildDrawFour) {PlayCard(parts, json);break;}
                             }
                         }
                         else if(topCard.type == cc.type) {
@@ -202,7 +202,7 @@ public class Server
                                 if(cc.num == topCard.num)
                                 {
                                     topCard = cc;
-                                    NextTurn(parts, json);
+                                    PlayCard(parts, json);
                                     break;
                                 }
                             }
@@ -210,7 +210,7 @@ public class Server
                             else
                             {
                                 topCard = cc;
-                                NextTurn(parts, json);
+                                PlayCard(parts, json);
                                 break;
                             }
                         }
@@ -219,7 +219,7 @@ public class Server
                     // First card
                     else {
                         topCard = cc;
-                        NextTurn(parts, json);
+                        PlayCard(parts, json);
                     }
                     break;
             }
@@ -243,21 +243,50 @@ public class Server
     
     }
 
-    private void NextTurn(string[] parts, string json)
+    private void PlayCard(string[] parts, string json)
+    {
+        Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
+        // Player nextPlayer;
+        int skipCount = 1;
+        // for(int i=0;i<players.Count;i++) {
+        //     if(players[i].id == lastPlayer.id) {
+        //         // if(i == players.Count-1) nextPlayer = players[0];
+        //         // else nextPlayer = players[i+1];
+        //         break;
+        //     }
+        // }
+
+        // // CardLogic
+        switch(topCard.type) {
+            case Card.CardType.skip:
+                skipCount = 2;
+                break;
+        }
+
+        NextTurn(parts, json, skipCount);
+    }
+
+    private void NextTurn(string[] parts, string json, int skipCount)
     {
         int nextPlayerIndex = 0;
+        Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
         foreach(Player p in players) {
-            Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
             if(p.id == lastPlayer.id) {
                 if(p.isTurn) {
                     p.isTurn = false;
                     Console.WriteLine($"card played: {parts[1]}");
                     
-                    if(turnForward) nextPlayerIndex++;
-                    else nextPlayerIndex--;
+                    if(turnForward) nextPlayerIndex+=skipCount;
+                    else nextPlayerIndex-=skipCount;
                     
-                    if(nextPlayerIndex > players.Count-1) nextPlayerIndex = 0;
-                    else if(nextPlayerIndex < 0) nextPlayerIndex = players.Count - 1;
+                    if(nextPlayerIndex > players.Count-1) {
+                        if(skipCount>1) nextPlayerIndex = 1;
+                        else nextPlayerIndex = 0;
+                    }
+                    else if(nextPlayerIndex < 0) {
+                        if(skipCount>1) nextPlayerIndex = players.Count - 2;
+                        else nextPlayerIndex = players.Count - 1;
+                    }
 
                     players[nextPlayerIndex].isTurn = true;
 
@@ -304,7 +333,7 @@ public class Server
         }
 
         // Debug cards
-        for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
+        // for(int i=0;i<drawDeck.Count;i++) Console.WriteLine(i + ": " + drawDeck[i].color + " " + drawDeck[i].type + " " + drawDeck[i].num);
     }
     
     #endregion

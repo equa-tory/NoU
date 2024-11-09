@@ -6,7 +6,7 @@ public class Card
 {
     public enum CardColor { red, green, blue, yellow, none }
     public enum CardType { number, skip, reverse, drawTwo, wild, wildDrawFour }
-    
+
     public CardColor color { get; set; }
     public CardType type { get; set; }
     public int? num { get; set; }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("nou_server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f6f6c1659070800215be76b493d28fcd72fcc1e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ec09d7d93c20c1475f76d3d96380c949130b5aac")]
 [assembly: System.Reflection.AssemblyProductAttribute("nou_server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("nou_server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
