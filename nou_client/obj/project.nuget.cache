@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "+6Fv83Am97zsLAL6ldnspXJppkm14JH4ICPiNQmV3UWGi09QLMeZjP5jdNqG1O3JBLQMj4JcQgE28vYm0Dko+A==",
+  "dgSpecHash": "3IzIJgVc+5ohPLo/jAn9Uup1GbKHgmSBbuhrfQRLtGc7UmBlsnr6ToakRvV/Sn2YwelSPZiEYOaxwdCvN9i2YQ==",
   "success": true,
-  "projectFilePath": "D:\\Files_D\\c#\\NoU\\nou_client\\nou_client.csproj",
+  "projectFilePath": "F:\\Files_F\\_C#\\NoU\\nou_client\\nou_client.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\evgba\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+    "C:\\Users\\Alex\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
   ],
   "logs": []
 }

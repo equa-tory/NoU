@@ -20,7 +20,7 @@ public class Client
 
     public event Action<List<Card>, int> OnGameStart;
     public event Action<List<Player>> OnLobbyUpdated;
-    public event Action<Card, Player> OnTopCardUpdated;
+    public event Action<Card, Player, List<Card>> OnTopCardUpdated;
     
     #endregion
 
@@ -95,7 +95,8 @@ public class Client
                 case "updatetopcard":
                     Card topcard = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
                     Player nextPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
-                    OnTopCardUpdated?.Invoke(topcard, nextPlayer);
+                    List<Card> sendedCards = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Card>>(parts[3]);
+                    OnTopCardUpdated?.Invoke(topcard, nextPlayer, sendedCards);
                     break;
             }
         }

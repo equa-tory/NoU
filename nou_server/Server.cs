@@ -1,5 +1,4 @@
 using System;
-using System.Formats.Asn1;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -245,6 +244,7 @@ public class Server
 
     private void PlayCard(string[] parts, string json)
     {
+        #region Skip
         Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
         // Player nextPlayer;
         int skipCount = 1;
@@ -255,18 +255,35 @@ public class Server
         //         break;
         //     }
         // }
+        #endregion
 
-        // // CardLogic
+        // CardLogic
         switch(topCard.type) {
-            case Card.CardType.skip:
-                skipCount = 2;
+
+            case Card.CardType.skip: // Skip
+                NextTurn(parts, json, 2);
+                break;
+
+            case Card.CardType.drawTwo: // Draw Two
+                List<Card> cardsToSend = new List<Card>();
+                Random r = new Random();
+
+                for(int i=0;i<2;i++){
+                    int rand = r.Next(0, drawDeck.Count);
+                    cardsToSend.Add(drawDeck[rand]);
+                    drawDeck.RemoveAt(rand);
+                }
+                NextTurn(parts, json, cardsToSend:cardsToSend);
+                break;
+
+            default: // Num
+                NextTurn(parts, json);
                 break;
         }
 
-        NextTurn(parts, json, skipCount);
     }
 
-    private void NextTurn(string[] parts, string json, int skipCount)
+    private void NextTurn(string[] parts, string json, int skipCount = 1, List<Card> cardsToSend = null)
     {
         int nextPlayerIndex = 0;
         Player lastPlayer = Newtonsoft.Json.JsonConvert.DeserializeObject<Player>(parts[2]);
@@ -291,7 +308,9 @@ public class Server
                     players[nextPlayerIndex].isTurn = true;
 
                     // send all players updated top card and next layer that turn
-                    json = $"{parts[1]}::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
+                    json = $"{parts[1]}";
+                    json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
+                    json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(cardsToSend)}";
                     TcpBroadcast($"updatetopcard::{json}");
                     break;
                 }

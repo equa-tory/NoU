@@ -56,7 +56,7 @@ public class GameEngine
         // if(!gameStarted) DrawLobby();
         // else DrawGame();
 
-        if(Console.KeyAvailable) Input();
+        if(Console.KeyAvailable) LobbyInput();
 
         Thread.Sleep(frameRate);
         // Console.Clear();
@@ -68,7 +68,7 @@ public class GameEngine
 
     #region Game
     
-    private void Input()
+    private void LobbyInput()
     {
         ConsoleKeyInfo key = Console.ReadKey(true);
 
@@ -91,6 +91,8 @@ public class GameEngine
             case ConsoleKey.D5:
             case ConsoleKey.D6:
             case ConsoleKey.D7:
+            case ConsoleKey.D8:
+            case ConsoleKey.D9:
                 if(!localPlayer.isTurn) break;
                 if(gameState != GameState.Started) break;
 
@@ -153,6 +155,52 @@ public class GameEngine
                 break;
         }
     }
+    
+    private void InputCard(int numberPressed)
+    {
+        if(!localPlayer.isTurn) return;
+        if(gameState != GameState.Started) return;
+
+        if(numberPressed >= deck.Count) return;
+
+        // ===================== Turn logic =====================
+        Card cc = deck[numberPressed];
+        if(topCard != null) {
+            
+            if(topCard.color == cc.color) {
+                // Same color
+                if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
+                    PlayCard(cc);
+                    return;
+                }
+                // Same wild
+                else{
+                    if(topCard.type == Card.CardType.wild) {PlayCard(cc);return;}
+                    else if(topCard.type == Card.CardType.wildDrawFour) {PlayCard(cc);return;}
+                }
+            }
+            else if(topCard.type == cc.type) {
+                // Same number
+                if(cc.type == Card.CardType.number)
+                {
+                    if(cc.num == topCard.num)
+                    {
+                        PlayCard(cc);
+                        return;
+                    }
+                }
+                // Same Type
+                else
+                {
+                    PlayCard(cc);
+                    return;
+                }
+            }
+
+        }
+        // First card
+        else PlayCard(cc);
+    }
 
     private void PlayCard(Card card)
     {
@@ -187,9 +235,15 @@ public class GameEngine
         DrawGame();
     }
 
-    private void UpdateTopCard(Card topCard, Player nextPlayer)
+    private void UpdateTopCard(Card topCard, Player nextPlayer, List<Card> sendedCards)
     {
-        localPlayer.isTurn = nextPlayer.id == localPlayer.id;
+        if(nextPlayer.id == localPlayer.id){
+            localPlayer.isTurn = true;
+            localPlayer.cardsLeft = nextPlayer.cardsLeft;
+
+            // Add new cards (+2, +4)
+            if(sendedCards != null) foreach(Card c in sendedCards) deck.Add(c);
+        }
         this.topCard = topCard;
         DrawGame();
     }
