@@ -56,7 +56,10 @@ public class GameEngine
         // if(!gameStarted) DrawLobby();
         // else DrawGame();
 
-        if(Console.KeyAvailable) LobbyInput();
+        if(Console.KeyAvailable) {
+            if(gameState == GameState.Lobby) LobbyInput();
+            else if(gameState == GameState.Started) GameInput();
+        }
 
         Thread.Sleep(frameRate);
         // Console.Clear();
@@ -155,29 +158,50 @@ public class GameEngine
                 break;
         }
     }
-    
+
+    private void GameInput()
+    {
+        string inp = Console.ReadLine();
+        DrawGame();
+        
+        try{
+            int numInp = int.Parse(inp)-1;
+            InputCard(numInp);
+        }
+        catch{
+
+            switch(inp.ToLower())
+            {
+                case "q":
+                    Exit();
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+    }    
+
     private void InputCard(int numberPressed)
     {
         if(!localPlayer.isTurn) return;
         if(gameState != GameState.Started) return;
-
         if(numberPressed >= deck.Count) return;
 
         // ===================== Turn logic =====================
         Card cc = deck[numberPressed];
         if(topCard != null) {
             
-            if(topCard.color == cc.color) {
+            if(cc.type == Card.CardType.wild || cc.type == Card.CardType.wildDrawFour) {
+                // Wild card
+                PlayCard(cc);
+                return;
+            }
+            else if(topCard.color == cc.color) {
                 // Same color
-                if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
-                    PlayCard(cc);
-                    return;
-                }
-                // Same wild
-                else{
-                    if(topCard.type == Card.CardType.wild) {PlayCard(cc);return;}
-                    else if(topCard.type == Card.CardType.wildDrawFour) {PlayCard(cc);return;}
-                }
+                PlayCard(cc);
+                return;
             }
             else if(topCard.type == cc.type) {
                 // Same number

@@ -179,20 +179,18 @@ public class Server
                 case "play": // Player play card
                     // Card rightness check
                     Card cc = Newtonsoft.Json.JsonConvert.DeserializeObject<Card>(parts[1]);
+                    topCard = cc;
                     if(topCard != null) {
                         
-                        if(topCard.color == cc.color) {
+                        if(cc.type == Card.CardType.wild || cc.type == Card.CardType.wildDrawFour) {
+                            // Wild card
+                            PlayCard(parts, json);
+                            return;
+                        }
+                        else if(topCard.color == cc.color) {
                             // Same color
-                            if(cc.type != Card.CardType.wild && cc.type != Card.CardType.wildDrawFour) {
-                                topCard = cc;
-                                PlayCard(parts, json);
-                                break;
-                            }
-                            // Same wild
-                            else{
-                                if(topCard.type == Card.CardType.wild) {PlayCard(parts, json);break;}
-                                else if(topCard.type == Card.CardType.wildDrawFour) {PlayCard(parts, json);break;}
-                            }
+                            PlayCard(parts, json);
+                            break;
                         }
                         else if(topCard.type == cc.type) {
                             // Same number
@@ -200,7 +198,6 @@ public class Server
                             {
                                 if(cc.num == topCard.num)
                                 {
-                                    topCard = cc;
                                     PlayCard(parts, json);
                                     break;
                                 }
@@ -208,7 +205,6 @@ public class Server
                             // Same Type
                             else
                             {
-                                topCard = cc;
                                 PlayCard(parts, json);
                                 break;
                             }
@@ -217,7 +213,6 @@ public class Server
                     }
                     // First card
                     else {
-                        topCard = cc;
                         PlayCard(parts, json);
                     }
                     break;
@@ -291,6 +286,7 @@ public class Server
             if(p.id == lastPlayer.id) {
                 if(p.isTurn) {
                     p.isTurn = false;
+                    p.cardsLeft--;
                     Console.WriteLine($"card played: {parts[1]}");
                     
                     if(turnForward) nextPlayerIndex+=skipCount;
@@ -307,6 +303,10 @@ public class Server
 
                     players[nextPlayerIndex].isTurn = true;
 
+                    // Max 9 cards per player so remove some if > 9
+                    // if(players[nextPlayerIndex].cardsLeft + cardsToSend.Count > 9) for(int i=0;i<players[nextPlayerIndex].cardsLeft + cardsToSend.Count-9;i++) cardsToSend.RemoveAt(i);
+                    players[nextPlayerIndex].cardsLeft += cardsToSend.Count;
+                    
                     // send all players updated top card and next layer that turn
                     json = $"{parts[1]}";
                     json += $"::{Newtonsoft.Json.JsonConvert.SerializeObject(players[nextPlayerIndex])}";
@@ -325,6 +325,7 @@ public class Server
     {
         drawDeck.Clear();
         // add number cards
+        //for(int i=0;i<108;i++)drawDeck.Add(new Card(Card.CardColor.red, Card.CardType.drawTwo));
         foreach(Card.CardColor color in Enum.GetValues(typeof(Card.CardColor)))
         {
             for(int i=1;i<10;i++)
