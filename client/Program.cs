@@ -10,6 +10,6 @@ public class Program
         int port = 5000;
 
         var client = new Client(ip, port);
-        client.Run();
+        // client();
     }
 }

@@ -8,13 +8,14 @@ namespace NoU;
 public class Client
 {
     #region Variables
-    private bool isRunning = false;
+    private bool isConnected = false;
     private string ip = "";
     private int port = 0;
 
     // TCP
-    private TcpListener tcpServer;
-    private List<TcpClient> clients = new List<TcpClient>();
+    private int clientId = 0;
+    private TcpClient client;
+    private NetworkStream stream;
     private Dictionary<string, Action<string>> actions = new Dictionary<string, Action<string>>();
 
     // Game
@@ -29,134 +30,84 @@ public class Client
         this.ip = ip;
         this.port = port;
 
-        Console.CancelKeyPress += (sender, e) => Stop();
-        InitActions();
+        Console.CancelKeyPress += (sender, e) => Disconnect();
+        ConnectToServer();
     }
 
-    public void Run()
+    public void ConnectToServer()
     {
-        tcpServer = new TcpListener(IPAddress.Parse(ip), port);
-        tcpServer.Start();
-        isRunning = true;
+        try
+        {
+            client = new TcpClient(ip, port);
+            stream = client.GetStream();
+            isConnected = true;
+            Console.WriteLine($"[LOG] Connecting to server {ip}:{port}...");
 
-        Console.WriteLine($"[LOG] Server started on {ip}:{port}");
+            Task t = new Task(ReceiveTCP);
+            t.Start();
 
-        Thread acceptThread = new Thread(AcceptTCP);
-        acceptThread.Start();
-    }
-
-    private void Stop()
-    {
-        isRunning = false;
-        tcpServer.Stop();
-        Console.Clear();
+            #region TODO: move to game engine
+            while (isConnected)
+            {
+                LobbyInput();
+            }
+            #endregion
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine("[ERR] TCP Connection: " + e);
+        }
     }
     #endregion
 
     //--------------------------------------------------------------------------------------------
 
     #region TCP
-    private void AcceptTCP() // TODO: Secure id send
+    private void ReceiveTCP()
     {
-        while (isRunning)
+        byte[] buffer = new byte[4096];
+        while (isConnected)
         {
-            TcpClient client = tcpServer.AcceptTcpClient();
-            lock (clients) clients.Add(client);
-            Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}");
+            int byteCount = stream.Read(buffer, 0, buffer.Length);
+            if (byteCount == 0) continue;
+            string data = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-            Task clientThread = new Task(() => HandleClient(client));
-            clientThread.Start();
+            // Debug recieved data
+            // Debug.Log($"[TCP] {data}");
 
-            Thread.Sleep(100);
+            // Trim data if multiple messages in one
+            BaseMessage msg = Utils.TrimData(data);
+            if (actions.TryGetValue(msg.Type, out var action)) action?.Invoke(msg.Data.ToString());
         }
     }
 
-    private void HandleClient(TcpClient client)
+    public void Disconnect()
     {
-        NetworkStream stream = client.GetStream();
-        byte[] buffer = new byte[1024];
-
-        while (client.Connected)
+        if (client != null && isConnected)
         {
-            int bytesCount = stream.Read(buffer, 0, buffer.Length);
-            if (bytesCount == 0)
-            {
-                // Client disconnected
-                Console.WriteLine($"[LOG] Client disconnect: {client.Client.RemoteEndPoint}");
-                break;
-            }
-
-            string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
-
-            BaseMessage message = Utils.TrimData(data);
-
-            // TODO: Secure Check
-            // int clientId = message.ID;
-            // lock (clients)
-            // {
-            //     if (clients.FindIndex(c => c.Client.RemoteEndPoint == client.Client.RemoteEndPoint) != clientId)
-            // }
-
-            // Actions
-            if (actions.TryGetValue(message.Type, out var action)) action?.Invoke(message.Data.ToString());
-        }
-
-        DisconnectTcpClient(client);
-    }
-
-    private void DisconnectTcpClient(TcpClient client)
-    {
-        if (client == null || !client.Connected) return;
-
-        clients.Remove(client);
-
-        // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnecting...");
-
-        try
-        {
-            client.Client.Shutdown(SocketShutdown.Both);
-            client.Close();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"[ERR] Error disconnecting client {client.Client.RemoteEndPoint}: {e.Message}");
-        }
-
-        // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnected.");
-    }
-    #endregion
-
-    #region Sending
-    private void BroadcastTCP(string type, object message)
-    {
-        string data = Utils.CreateMessage(-16, type, message);
-        data += "\n";
-        byte[] buffer = Encoding.UTF8.GetBytes(data);
-        lock (clients)
-        {
-            foreach (TcpClient client in clients)
-                client.GetStream().Write(buffer, 0, buffer.Length);
-        }
-    }
-
-    // Send data to specific client
-    private void DirectTCP(string type, object message, TcpClient client)
-    {
-        string data = Utils.CreateMessage(-16, type, message);
-        data += "\n";
-        byte[] buffer = Encoding.UTF8.GetBytes(data);
-        lock (clients)
-        {
+            isConnected = false;
             try
             {
-                NetworkStream stream = client.GetStream();
-                stream.Write(buffer, 0, buffer.Length);
+                client.Client.Shutdown(SocketShutdown.Both);
+                stream?.Close();
+                client?.Close();
             }
-            catch
+            catch (SocketException e)
             {
-                Console.WriteLine($"[ERR] Error direct sending data to client {client.Client.RemoteEndPoint}");
+                Console.WriteLine($"[ERR] TCP Disconnect: {e}");
             }
         }
+    }
+
+    public void TCP(string type, object message)
+    {
+        // if (clientId == 0) return;
+        #region TODO: change id sending to client's id
+        string data = Utils.CreateMessage(1, type, message);
+        #endregion
+        data += "\n";
+        byte[] buffer = Encoding.UTF8.GetBytes(data);
+        stream.Write(buffer, 0, buffer.Length);
     }
     #endregion
 
@@ -168,6 +119,7 @@ public class Client
         actions = new Dictionary<string, Action<string>>
         {
             { "LOG", Log },
+            { "CLID", CLID },
             // { "RPC", RPC },
             // { "VIEW_UPD", ViewUpdate },
             // { "VIEW_DEL", ViewDelete },
@@ -178,6 +130,44 @@ public class Client
     {
         var obj = Utils.Deserialize<Log>(message);
         Console.WriteLine($"[LOG] {obj.message}");
+    }
+
+    private void CLID(string data)
+    {
+        var obj = Utils.Deserialize<int>(data);
+        clientId = obj;
+        Console.WriteLine($"My id is {clientId}");
+    }
+    #endregion
+
+    //--------------------------------------------------------------------------------------------
+
+    #region TODO: Input
+    private void LobbyInput()
+    {
+        ConsoleKeyInfo key = Console.ReadKey(true);
+
+        switch (key.Key)
+        {
+            case ConsoleKey.Q:
+                TCP("LOG", new Log("Hello, world"));
+                break;
+
+            // case ConsoleKey.UpArrow:
+            //     Console.WriteLine("\t"+Underline("Luzevg"));
+            //     Console.WriteLine("Qdness"+"\t\t"+"Equa");
+            //     Console.WriteLine("\t"+"Axlamon");
+            //     break;
+
+            // case ConsoleKey.RightArrow:
+            //     Console.WriteLine("\tLuzevg");
+            //     Console.WriteLine("Qdness\t\t"+Underline("Equa"));
+            //     Console.WriteLine("\tAxlamon");
+            //     break;
+
+            default:
+                break;
+        }
     }
     #endregion
 

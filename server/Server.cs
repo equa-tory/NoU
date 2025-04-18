@@ -11,10 +11,11 @@ public class Server
     private bool isRunning = false;
     private string ip = "";
     private int port = 0;
+    private int nextClientId = 1;
 
     // TCP
     private TcpListener tcpServer;
-    private List<TcpClient> clients = new List<TcpClient>();
+    private Dictionary<int, TcpClient> clients = new Dictionary<int, TcpClient>();
     private Dictionary<string, Action<string>> actions = new Dictionary<string, Action<string>>();
 
     // Game
@@ -55,14 +56,17 @@ public class Server
 
     //--------------------------------------------------------------------------------------------
 
-    #region TCP
-    private void AcceptTCP() // TODO: Secure id send
+    #region TCP TODO: Secure id send
+    private void AcceptTCP()
     {
         while (isRunning)
         {
             TcpClient client = tcpServer.AcceptTcpClient();
-            lock (clients) clients.Add(client);
+            int newClientId = 1;
+            lock (client) { newClientId = nextClientId++; clients[newClientId] = client; }
             Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}");
+
+            DirectTCP("CLID", newClientId, client); // Send ID for UDP secure check
 
             Task clientThread = new Task(() => HandleClient(client));
             clientThread.Start();
@@ -90,12 +94,13 @@ public class Server
 
             BaseMessage message = Utils.TrimData(data);
 
-            // TODO: Secure Check
+            #region TODO: Secure Check
             // int clientId = message.ID;
             // lock (clients)
             // {
             //     if (clients.FindIndex(c => c.Client.RemoteEndPoint == client.Client.RemoteEndPoint) != clientId)
             // }
+            #endregion
 
             // Actions
             if (actions.TryGetValue(message.Type, out var action)) action?.Invoke(message.Data.ToString());
@@ -108,7 +113,17 @@ public class Server
     {
         if (client == null || !client.Connected) return;
 
-        clients.Remove(client);
+        int clientId;
+        lock (clients)
+        {
+            clientId = clients.FirstOrDefault(x => x.Value.Equals(client)).Key;
+            if (clientId == 0)
+            {
+                Console.WriteLine($"[TCP] Attempted to disconnect unknown client.");
+                return;
+            }
+            clients.Remove(clientId);
+        }
 
         // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnecting...");
 
@@ -134,7 +149,7 @@ public class Server
         byte[] buffer = Encoding.UTF8.GetBytes(data);
         lock (clients)
         {
-            foreach (TcpClient client in clients)
+            foreach (TcpClient client in clients.Values)
                 client.GetStream().Write(buffer, 0, buffer.Length);
         }
     }
