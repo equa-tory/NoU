@@ -30,7 +30,10 @@ public class Client
         this.ip = ip;
         this.port = port;
 
+        #region TODO: move to game engine
+        Console.Clear();
         Console.CancelKeyPress += (sender, e) => Disconnect();
+        #endregion
         InitActions();
         ConnectToServer();
     }
@@ -66,16 +69,19 @@ public class Client
     #region TCP
     private void ReceiveTCP()
     {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[1024];
         while (isConnected)
         {
             // Reading
             int byteCount = stream.Read(buffer, 0, buffer.Length);
-            if (byteCount == 0) continue;
+            if (byteCount == 0) {
+                Console.WriteLine($"[TCP] No reading from server: {ip}:{port}");
+                break;
+            }
             string data = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
             // Debug recieved data
-            // Debug.Log($"[TCP] {data}");
+            // Console.WriteLine($"[TCP] {data}");
 
             // Acting
             // Trim data if multiple messages in one
@@ -100,11 +106,15 @@ public class Client
                 Console.WriteLine($"[ERR] TCP Disconnect: {e}");
             }
         }
+
+        #region TODO: move to game engine
+        Console.Clear();
+        #endregion
     }
 
     public void TCP(string type, object message)
     {
-        // if (clientId == 0) return;
+        if (clientId == 0) return;
         string data = Utils.CreateMessage(clientId, type, message);
         data += "\n";
         byte[] buffer = Encoding.UTF8.GetBytes(data);
@@ -151,17 +161,17 @@ public class Client
         switch (key.Key)
         {
             case ConsoleKey.Q:
-                TCP("LOG", new Log("🟢 5   [2] 🔴 7   [3] 🔵 Skip"));
+                TCP("LOG", new Log($"{clientId} 🟢 5   [2] 🔴 7   [3] 🔵 Skip"));
                 break;
             case ConsoleKey.D:
-                TCP("LOL", new Log($"Ayo it's me {clientId}"));
+                TCP("LOG", new Log($"Ayo it's me {clientId}"));
                 break;
 
             // case ConsoleKey.UpArrow:
             //     Console.WriteLine("\t"+Underline("Luzevg"));
             //     Console.WriteLine("Qdness"+"\t\t"+"Equa");
             //     Console.WriteLine("\t"+"Axlamon");
-            //     break;q
+            //     break;
 
             // case ConsoleKey.RightArrow:
             //     Console.WriteLine("\tLuzevg");

@@ -30,6 +30,7 @@ public class Server
         this.ip = ip;
         this.port = port;
 
+        Console.Clear();
         Console.CancelKeyPress += (sender, e) => Stop();
         InitActions();
     }
@@ -66,7 +67,6 @@ public class Server
             nextClientId++;
             lock (clients) clients[nextClientId] = client;
             DirectTCP("CLID", nextClientId, client);
-            BroadcastTCP("LOG", "LOL");
 
             Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}, with id: {nextClientId}");
 
@@ -89,16 +89,20 @@ public class Server
             if (bytesCount == 0)
             {
                 // Client disconnected
-                Console.WriteLine($"[LOG] Client disconnect: {client.Client.RemoteEndPoint}");
+                Console.WriteLine($"[LOG] No reading from client: {client.Client.RemoteEndPoint}, disconnecting...");
                 break;
             }
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
 
+            // Debug recieved data
+            // Console.WriteLine($"[TCP] {data}");
+
             // Acting
             BaseMessage message = Utils.TrimData(data);
 
-            #region TODO: Secure Check
+            #region Secure Check
+            // OLD \/
             // int clientId = message.ID;
             // Console.WriteLine($"Sec check id: {clientId} to {clients.FirstOrDefault(x => x.Value.Equals(client)).Key}");
             // if (clients.TryGetValue(clientId, out var existingClient))
@@ -155,6 +159,10 @@ public class Server
         }
 
         // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnected.");
+
+        #region TODO: Broadcast disconnect
+        // BroadcastTCP("LOG", new Log($"[LOG] Client (ID: {clientId}) disconnected."));
+        #endregion
     }
     #endregion
 
@@ -200,7 +208,6 @@ public class Server
         actions = new Dictionary<string, Action<string>>
         {
             { "LOG", Log },
-            { "LOL", Lol },
             // { "RPC", RPC },
             // { "VIEW_UPD", ViewUpdate },
             // { "VIEW_DEL", ViewDelete },
@@ -211,13 +218,7 @@ public class Server
     {
         var obj = Utils.Deserialize<Log>(message);
         Console.WriteLine($"[LOG] {obj.message}");
-        BroadcastTCP("LOG", obj.message);
-    }
-
-    private void Lol(string message)
-    {
-        var obj = Utils.Deserialize<Log>(message);
-        BroadcastTCP("LOG", obj.message);
+        BroadcastTCP("LOG", new Log($"[LOG] {obj.message}"));
     }
     #endregion
 
