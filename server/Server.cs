@@ -56,17 +56,19 @@ public class Server
 
     //--------------------------------------------------------------------------------------------
 
-    #region TCP TODO: Secure id send
+    #region TCP
     private void AcceptTCP()
     {
         while (isRunning)
         {
             TcpClient client = tcpServer.AcceptTcpClient();
-            int newClientId = 1;
-            lock (client) { newClientId = nextClientId++; clients[newClientId] = client; }
-            Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}");
 
-            DirectTCP("CLID", newClientId, client); // Send ID for UDP secure check
+            nextClientId++;
+            lock (clients) clients[nextClientId] = client;
+            DirectTCP("CLID", nextClientId, client);
+            BroadcastTCP("LOG", "LOL");
+
+            Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}, with id: {nextClientId}");
 
             Task clientThread = new Task(() => HandleClient(client));
             clientThread.Start();
@@ -82,6 +84,7 @@ public class Server
 
         while (client.Connected)
         {
+            // Reading
             int bytesCount = stream.Read(buffer, 0, buffer.Length);
             if (bytesCount == 0)
             {
@@ -92,14 +95,28 @@ public class Server
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
 
+            // Acting
             BaseMessage message = Utils.TrimData(data);
 
             #region TODO: Secure Check
             // int clientId = message.ID;
-            // lock (clients)
+            // Console.WriteLine($"Sec check id: {clientId} to {clients.FirstOrDefault(x => x.Value.Equals(client)).Key}");
+            // if (clients.TryGetValue(clientId, out var existingClient))
             // {
-            //     if (clients.FindIndex(c => c.Client.RemoteEndPoint == client.Client.RemoteEndPoint) != clientId)
+            //     if (!existingClient.Equals(client))
+            //     {
+            //         Console.WriteLine($"[ALERT, TCP] !!! ATTEMPT TO SEND UDP WITH SPOOFED ID {clientId} from {client.Client.RemoteEndPoint} (Expected: {existingClient.Client.RemoteEndPoint}) !!!");
+            //         continue; // Secure Check: Ignore spoofing attempts
+            //     }
             // }
+
+            int messageId = message.ID;
+            int clientId = clients.FirstOrDefault(x => x.Value.Equals(client)).Key;
+            if (messageId != clientId)
+            {
+                Console.WriteLine($"[ALERT, TCP] !!! ATTEMPT TO SEND UDP WITH SPOOFED ID {messageId} from {client.Client.RemoteEndPoint} (Expected: {clientId}) !!!");
+                continue;
+            }
             #endregion
 
             // Actions
@@ -117,7 +134,7 @@ public class Server
         lock (clients)
         {
             clientId = clients.FirstOrDefault(x => x.Value.Equals(client)).Key;
-            if (clientId == 0)
+            if (clientId <= 1)
             {
                 Console.WriteLine($"[TCP] Attempted to disconnect unknown client.");
                 return;
@@ -183,6 +200,7 @@ public class Server
         actions = new Dictionary<string, Action<string>>
         {
             { "LOG", Log },
+            { "LOL", Lol },
             // { "RPC", RPC },
             // { "VIEW_UPD", ViewUpdate },
             // { "VIEW_DEL", ViewDelete },
@@ -193,6 +211,13 @@ public class Server
     {
         var obj = Utils.Deserialize<Log>(message);
         Console.WriteLine($"[LOG] {obj.message}");
+        BroadcastTCP("LOG", obj.message);
+    }
+
+    private void Lol(string message)
+    {
+        var obj = Utils.Deserialize<Log>(message);
+        BroadcastTCP("LOG", obj.message);
     }
     #endregion
 
