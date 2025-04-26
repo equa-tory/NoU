@@ -55,24 +55,26 @@
     ]
   },
   "packageFolders": {
-    "/Users/equa/.nuget/packages/": {}
+    "C:\\Users\\Alex\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/equa/Developer/Cs/NoU/server/server.csproj",
+      "projectUniqueName": "F:\\Files_F\\_C#\\NoU\\_new\\NoU\\server\\server.csproj",
       "projectName": "server",
-      "projectPath": "/Users/equa/Developer/Cs/NoU/server/server.csproj",
-      "packagesPath": "/Users/equa/.nuget/packages/",
-      "outputPath": "/Users/equa/Developer/Cs/NoU/server/obj/",
+      "projectPath": "F:\\Files_F\\_C#\\NoU\\_new\\NoU\\server\\server.csproj",
+      "packagesPath": "C:\\Users\\Alex\\.nuget\\packages\\",
+      "outputPath": "F:\\Files_F\\_C#\\NoU\\_new\\NoU\\server\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/equa/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\Alex\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -91,7 +93,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net9.0": {
@@ -118,7 +120,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

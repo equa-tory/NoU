@@ -244,7 +244,8 @@ public class Server
             { "LOG", Log },
             { "NICK", Nick },
             { "START", StartGame },
-            { "MSG", ChatMessage },
+            { "CMD-CHAT", CommandChat },
+            // { "CMD-CHAT", ChatMessage },
         };
 
         gameState.currentScreen = Screen.Lobby;
@@ -284,12 +285,12 @@ public class Server
         gameLogic = new GameLogic(gameState, this);
 
         // Commands help
-        gameState.chat.Add(new ChatMessage("Commands", "play card_num;\ncolor red_green_blue_yellow;\nchat your_message; quit" ));
+        gameState.chat.Add(new ChatMessage("Commands", "play card_num;\ncolor red_green_blue_yellow;\nchat your_message; quit"));
 
         BroadcastTCP("STATE", gameState);
     }
     
-    private void ChatMessage(int id, string message)
+    private void CommandChat(int id, string message)
     {
         var obj = Utils.Deserialize<ChatMessage>(message);
         gameState.chat.Add(obj);

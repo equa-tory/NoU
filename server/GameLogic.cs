@@ -95,7 +95,6 @@ public class GameLogic
     //--------------------------------------------------------------------------------------------
 
     #region Gameplay Functions
-    
     #endregion
 
 }

@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "ef8Aav2+08w=",
+  "dgSpecHash": "qyr8Vgfwgmk=",
   "success": true,
-  "projectFilePath": "/Users/equa/Developer/Cs/NoU/client/client.csproj",
+  "projectFilePath": "F:\\Files_F\\_C#\\NoU\\_new\\NoU\\client\\client.csproj",
   "expectedPackageFiles": [
-    "/Users/equa/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512"
+    "C:\\Users\\Alex\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
   ],
   "logs": []
 }

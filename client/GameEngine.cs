@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Net.Http.Headers;
 
 namespace NoU;
 
@@ -34,12 +35,13 @@ public class GameEngine
 
         // Game loop
         this.isRunning = true;
-        while (isRunning && gameState.currentScreen != Screen.Game)
+        while (isRunning)
         {
             Input();
         }
     }
 
+    #region Input
     private void Input()
     {
         ConsoleKeyInfo key = Console.ReadKey(true);
@@ -47,6 +49,7 @@ public class GameEngine
         switch (key.Key)
         {
             case ConsoleKey.Q:
+                if(gameState.currentScreen == Screen.Game) return;
                 client.Disconnect();
                 isRunning = false;
                 break;
@@ -69,7 +72,7 @@ public class GameEngine
                 break;
 
             case ConsoleKey.S:
-                if(!player.isHost) return;
+                if(!player.isHost && gameState.currentScreen == Screen.Game) return;
                 client.TCP("START", gameState);
                 break;
 
@@ -77,6 +80,7 @@ public class GameEngine
                 break;
         }
     }
+    #endregion
 
     public void DrawFrame()
     {
@@ -127,13 +131,6 @@ public class GameEngine
     }
 
     private void DrawGameFrame() {
-        // Console.WriteLine($"You are {player.name}#{player.id}");
-        // Console.WriteLine($"Cards: {player.deck.Count}");
-
-        // foreach (Card card in player.deck) {
-        //     Console.WriteLine($"Card: {card.color} {card.type}");
-        // }
-
         #region Players list
         for(int i=0;i<gameState.players.Count;i++){
             Player p = gameState.players[i];
@@ -155,7 +152,7 @@ public class GameEngine
             Card card = player.deck[i];
             Console.Write($"[{i+1}] {GetCardString(card)} ");
 
-            if ((i + 1) % 3 == 0) Console.WriteLine();        
+            if ((i + 1) % 3 == 0) Console.WriteLine();
         }
         #endregion
 
@@ -165,6 +162,8 @@ public class GameEngine
             Console.WriteLine($"{msg.sender}: {msg.message}");
         }
         #endregion
+        
+        string input = Console.ReadLine();
     }
 
     private string GetCardString(Card card) {
