@@ -13,13 +13,14 @@ public class Client
     private int port = 0;
 
     // TCP
-    private int clientId = 0;
+    public int id { get; private set; } = 0;
     private TcpClient client;
     private NetworkStream stream;
     private Dictionary<string, Action<string>> actions = new Dictionary<string, Action<string>>();
 
     // Game
     //lobbies, players...
+    public event Action<GameState> OnGameStateUpdate;
     #endregion
 
     //--------------------------------------------------------------------------------------------
@@ -30,10 +31,6 @@ public class Client
         this.ip = ip;
         this.port = port;
 
-        #region TODO: move to game engine
-        Console.Clear();
-        Console.CancelKeyPress += (sender, e) => Disconnect();
-        #endregion
         InitActions();
         ConnectToServer();
     }
@@ -49,13 +46,6 @@ public class Client
 
             Task t = new Task(ReceiveTCP);
             t.Start();
-
-            #region TODO: move to game engine
-            while (isConnected)
-            {
-                LobbyInput();
-            }
-            #endregion
         }
         catch (SocketException e)
         {
@@ -80,8 +70,10 @@ public class Client
             }
             string data = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
+            #region Debug recieved data ========================================================
             // Debug recieved data
             // Console.WriteLine($"[TCP] {data}");
+            #endregion
 
             // Acting
             // Trim data if multiple messages in one
@@ -114,8 +106,8 @@ public class Client
 
     public void TCP(string type, object message)
     {
-        if (clientId == 0) return;
-        string data = Utils.CreateMessage(clientId, type, message);
+        if (id == 0) return;
+        string data = Utils.CreateMessage(id, type, message);
         data += "\n";
         byte[] buffer = Encoding.UTF8.GetBytes(data);
         stream.Write(buffer, 0, buffer.Length);
@@ -131,57 +123,26 @@ public class Client
         {
             { "LOG", Log },
             { "CLID", CLID },
-            // { "RPC", RPC },
-            // { "VIEW_UPD", ViewUpdate },
-            // { "VIEW_DEL", ViewDelete },
+            { "STATE", State },
         };
     }
 
     private void Log(string message)
     {
-        var obj = Utils.Deserialize<Log>(message);
-        Console.WriteLine($"[LOG] {obj.message}");
+        Console.WriteLine($"[LOG] {message}");
     }
 
     private void CLID(string data)
     {
         var obj = Utils.Deserialize<int>(data);
-        clientId = obj;
-        Console.WriteLine($"My id is {clientId}");
+        id = obj;
+        // Console.WriteLine($"My id is {id}");
     }
-    #endregion
 
-    //--------------------------------------------------------------------------------------------
-
-    #region Input TODO: move to game engine
-    private void LobbyInput()
+    private void State(string data)
     {
-        ConsoleKeyInfo key = Console.ReadKey(true);
-
-        switch (key.Key)
-        {
-            case ConsoleKey.Q:
-                TCP("LOG", new Log($"{clientId} 🟢 5   [2] 🔴 7   [3] 🔵 Skip"));
-                break;
-            case ConsoleKey.D:
-                TCP("LOG", new Log($"Ayo it's me {clientId}"));
-                break;
-
-            // case ConsoleKey.UpArrow:
-            //     Console.WriteLine("\t"+Underline("Luzevg"));
-            //     Console.WriteLine("Qdness"+"\t\t"+"Equa");
-            //     Console.WriteLine("\t"+"Axlamon");
-            //     break;
-
-            // case ConsoleKey.RightArrow:
-            //     Console.WriteLine("\tLuzevg");
-            //     Console.WriteLine("Qdness\t\t"+Underline("Equa"));
-            //     Console.WriteLine("\tAxlamon");
-            //     break;
-
-            default:
-                break;
-        }
+        var obj = Utils.Deserialize<GameState>(data);
+        OnGameStateUpdate?.Invoke(obj);
     }
     #endregion
 

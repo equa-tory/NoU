@@ -9,7 +9,6 @@ public class Program
         string ip = "127.0.0.1";
         int port = 5000;
 
-        var client = new Client(ip, port);
-        // client();
+        new GameEngine(ip, port);
     }
 }

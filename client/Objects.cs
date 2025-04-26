@@ -65,41 +65,66 @@ public class BaseMessage
 
 //--------------------------------------------------------------------------------------------
 
-public class Log
+public enum Screen
 {
-    public Log(string message)
-    {
+    NicknameInput,
+    Lobby,
+    Game,
+    MainMenu
+}
+
+public enum CardColor
+{
+    None,
+    Red,
+    Green,
+    Blue,
+    Yellow
+}
+
+public enum CardType
+{
+    Number,
+    Skip,
+    Reverse,
+    DrawTwo,
+    Wild,
+    WildDrawFour
+}
+
+public class Card
+{
+    public int id;
+    public CardColor color;
+    public CardType type;
+    public int value;
+}
+
+public class Player
+{
+    public int id;
+    public bool isHost = false;
+    public string name;
+    public List<Card> deck = new List<Card>();
+}
+
+public class GameState
+{
+    public Screen currentScreen = Screen.NicknameInput;
+    public List<Player> players = new List<Player>();
+    public int currentPlayer;
+    public Card topCard;
+
+    public List<ChatMessage> chat = new List<ChatMessage>();
+}
+
+public class ChatMessage
+{
+    public string sender;
+    public string message;
+
+    public ChatMessage(string sender, string message) {
+        this.sender = sender;
         this.message = message;
     }
-
-    public string message { get; set; }
-}
-
-public class RPC
-{
-    public RPC(string methodName, string data = null)
-    {
-        this.methodName = methodName;
-        this.data = data;
-    }
-
-    public string methodName { get; set; }
-    public string data { get; set; }
-}
-
-public class ViewData
-{
-    public string id;
-    public string path;
-
-    public float posX;
-    public float posY;
-    public float posZ;
-    public float rotX;
-    public float rotY;
-    public float rotZ;
-    public float rotW;
-    public float scaleX;
-    public float scaleY;
-    public float scaleZ;
 }

@@ -16,10 +16,12 @@ public class Server
     // TCP
     private TcpListener tcpServer;
     private Dictionary<int, TcpClient> clients = new Dictionary<int, TcpClient>();
-    private Dictionary<string, Action<string>> actions = new Dictionary<string, Action<string>>();
+    private Dictionary<string, Action<int, string>> actions = new Dictionary<string, Action<int, string>>();
 
     // Game
     //lobbies, players...
+    private GameState gameState = new GameState();
+    private GameLogic gameLogic;
     #endregion
 
     //--------------------------------------------------------------------------------------------
@@ -32,7 +34,7 @@ public class Server
 
         Console.Clear();
         Console.CancelKeyPress += (sender, e) => Stop();
-        InitActions();
+        Init();
     }
 
     public void Run()
@@ -66,7 +68,9 @@ public class Server
 
             nextClientId++;
             lock (clients) clients[nextClientId] = client;
+
             DirectTCP("CLID", nextClientId, client);
+            // BroadcastTCP("STATE", gameState); // << recieve everyone except connected player
 
             Console.WriteLine($"[LOG] Client connect: {client.Client.RemoteEndPoint}, with id: {nextClientId}");
 
@@ -95,8 +99,10 @@ public class Server
 
             string data = Encoding.UTF8.GetString(buffer, 0, bytesCount);
 
+            #region Debug recieved data ========================================================
             // Debug recieved data
             // Console.WriteLine($"[TCP] {data}");
+            #endregion
 
             // Acting
             BaseMessage message = Utils.TrimData(data);
@@ -124,7 +130,7 @@ public class Server
             #endregion
 
             // Actions
-            if (actions.TryGetValue(message.Type, out var action)) action?.Invoke(message.Data.ToString());
+            if (actions.TryGetValue(message.Type, out var action)) action?.Invoke(message.ID, message.Data.ToString());
         }
 
         DisconnectTcpClient(client);
@@ -133,6 +139,13 @@ public class Server
     private void DisconnectTcpClient(TcpClient client)
     {
         if (client == null || !client.Connected) return;
+
+        // Reset game if no players
+        if(gameState.players.Count == 0){
+            gameState.currentScreen = Screen.Lobby;
+            gameState.players.Clear();
+            gameLogic = null;
+        }
 
         int clientId;
         lock (clients)
@@ -145,6 +158,26 @@ public class Server
             }
             clients.Remove(clientId);
         }
+
+        #region In Game actions
+        Player player = gameState.players.FirstOrDefault(x => x.id == clientId);
+        if(player == null) return;
+
+        gameState.players.Remove(player);
+
+        // Host Migration
+        if(player.isHost){
+            gameState.players[0].isHost = true;
+        }
+
+        #region  TODO: REDO MIGRATION TO NEXT PLAYER, NOT FIRST!!!
+        // Current Player Migration
+        if(gameState.currentPlayer == clientId){
+            gameState.currentPlayer = gameState.players[0].id;
+        }
+        #endregion
+        #endregion
+
 
         // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnecting...");
 
@@ -160,14 +193,15 @@ public class Server
 
         // Console.WriteLine($"[TCP] Client {client.Client.RemoteEndPoint} (ID: {clientId}) disconnected.");
 
-        #region TODO: Broadcast disconnect
-        // BroadcastTCP("LOG", new Log($"[LOG] Client (ID: {clientId}) disconnected."));
+        #region TODO: Broadcast disconnect in chat
+        // BroadcastTCP("LOG", $"[LOG] Client (ID: {clientId}) disconnected.");
+        BroadcastTCP("STATE", gameState);
         #endregion
     }
     #endregion
 
     #region Sending
-    private void BroadcastTCP(string type, object message)
+    public void BroadcastTCP(string type, object message)
     {
         string data = Utils.CreateMessage(-16, type, message);
         data += "\n";
@@ -203,22 +237,65 @@ public class Server
     //--------------------------------------------------------------------------------------------
 
     #region Actions
-    private void InitActions()
+    private void Init()
     {
-        actions = new Dictionary<string, Action<string>>
+        actions = new Dictionary<string, Action<int, string>>
         {
             { "LOG", Log },
-            // { "RPC", RPC },
-            // { "VIEW_UPD", ViewUpdate },
-            // { "VIEW_DEL", ViewDelete },
+            { "NICK", Nick },
+            { "START", StartGame },
+            { "MSG", ChatMessage },
         };
+
+        gameState.currentScreen = Screen.Lobby;
     }
 
-    private void Log(string message)
+    private void Log(int id, string message)
     {
-        var obj = Utils.Deserialize<Log>(message);
-        Console.WriteLine($"[LOG] {obj.message}");
-        BroadcastTCP("LOG", new Log($"[LOG] {obj.message}"));
+        Console.WriteLine($"[LOG] {message}");
+        BroadcastTCP("LOG", message);
+    }
+
+    private void Nick(int id, string message)
+    {
+        // Console.WriteLine($"[LOG] Player {id} changed name to {message}");
+        var p = new Player();
+        p.id = id;
+        p.name = message;
+        p.isHost = gameState.players.Count == 0;
+        gameState.players.Add(p);
+
+        BroadcastTCP("STATE", gameState);
+        DirectTCP("STATE", gameState, clients[id]); // Somewhy doesn't update on new client w/o this
+    }
+
+    private void StartGame(int id, string message)
+    {
+        var obj = Utils.Deserialize<GameState>(message); // unnecessary, but just in case
+
+        // check if host
+        var player = gameState.players.FirstOrDefault(x => x.id == id);
+        if (player == null) return;
+        if (player.isHost == false) return;
+
+        gameState.currentScreen = Screen.Game;
+
+        // Generate cards, giveaway them to players
+        gameLogic = new GameLogic(gameState, this);
+
+        // Commands help
+        gameState.chat.Add(new ChatMessage("Commands", "play card_num;\ncolor red_green_blue_yellow;\nchat your_message; quit" ));
+
+        BroadcastTCP("STATE", gameState);
+    }
+    
+    private void ChatMessage(int id, string message)
+    {
+        var obj = Utils.Deserialize<ChatMessage>(message);
+        gameState.chat.Add(obj);
+        // remove old messages if more than 3
+        if (gameState.chat.Count > 3) gameState.chat.RemoveAt(0);
+        BroadcastTCP("STATE", gameState);
     }
     #endregion
 
