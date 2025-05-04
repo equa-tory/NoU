@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Net.Http.Headers;
 
@@ -54,22 +55,22 @@ public class GameEngine
                 isRunning = false;
                 break;
 
-            case ConsoleKey.L:
-                int i=0;
-                Console.WriteLine("---Players:---");
-                foreach (Player player in gameState.players){
-                    i++;
-                    Console.WriteLine($"{i}. {player.name}#{player.id}");
-                }
-                break;
+            // case ConsoleKey.L:
+            //     int i=0;
+            //     Console.WriteLine("---Players:---");
+            //     foreach (Player player in gameState.players){
+            //         i++;
+            //         Console.WriteLine($"{i}. {player.name}#{player.id}");
+            //     }
+            //     break;
             
-            case ConsoleKey.D:
-                client.TCP("LOG", $"Ayo it's me {player.name}#{client.id}");
-                break;
+            // case ConsoleKey.D:
+            //     client.TCP("LOG", $"Ayo it's me {player.name}#{client.id}");
+            //     break;
             
-            case ConsoleKey.A:
-                Console.Clear();
-                break;
+            // case ConsoleKey.A:
+            //     Console.Clear();
+            //     break;
 
             case ConsoleKey.S:
                 if(!player.isHost && gameState.currentScreen == Screen.Game) return;
@@ -164,6 +165,21 @@ public class GameEngine
         #endregion
         
         string input = Console.ReadLine();
+        // Send command to server (if right)
+        
+        if(input.StartsWith("play")){
+            string[] split = input.Split(" ");
+            if(split.Length > 1){
+                int index = int.Parse(split[1]);
+                client.TCP("CMD-PLAY", player.deck[index - 1].id);
+            }
+        }
+        else if(input.StartsWith("chat")){
+            string[] split = input.Split(" ");
+            if(split.Length > 1){
+                client.TCP("CMD-CHAT", new ChatMessage(player.name, split[1]));
+            }
+        }
     }
 
     private string GetCardString(Card card) {

@@ -245,6 +245,7 @@ public class Server
             { "NICK", Nick },
             { "START", StartGame },
             { "CMD-CHAT", CommandChat },
+            { "CMD-PLAY", CommandPlay },
             // { "CMD-CHAT", ChatMessage },
         };
 
@@ -281,11 +282,11 @@ public class Server
 
         gameState.currentScreen = Screen.Game;
 
+        // Commands help (*Premade in ChatMessage obj)
+        gameState.chat.Add(new ChatMessage("Commands", "play card_num;\ncolor red_green_blue_yellow;\nchat your_message; quit"));
+
         // Generate cards, giveaway them to players
         gameLogic = new GameLogic(gameState, this);
-
-        // Commands help
-        gameState.chat.Add(new ChatMessage("Commands", "play card_num;\ncolor red_green_blue_yellow;\nchat your_message; quit"));
 
         BroadcastTCP("STATE", gameState);
     }
@@ -297,6 +298,21 @@ public class Server
         // remove old messages if more than 3
         if (gameState.chat.Count > 3) gameState.chat.RemoveAt(0);
         BroadcastTCP("STATE", gameState);
+    }
+
+    private void CommandPlay(int id, string message)
+    {
+        var obj = Utils.Deserialize<int>(message);
+        Player playingPlayer = gameState.players.FirstOrDefault(x => x.id == id);
+        Card playingCard = playingPlayer.deck.FirstOrDefault(x => x.id == obj);
+        
+        // Checks
+        if(id != gameState.currentPlayer) return;
+        if(playingCard != null) {
+            Console.WriteLine($"RIGHT!: {playingCard.color.ToString()}, {playingCard.type.ToString()}, {playingCard.value}");
+        }
+
+
     }
     #endregion
 
